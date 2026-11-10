@@ -8,248 +8,324 @@ from visualization.dashboard_charts import (
 )
 
 st.set_page_config(
-    page_title="AlgoBench | Nexus",
+    page_title="AlgoBench | Performance Lab",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap');
 
-:root {
-    --bg: #080D18;
-    --panel: #101A2B;
-    --panel2: #131F33;
-    --border: #24334A;
-    --cyan: #22D3EE;
-    --purple: #A78BFA;
-    --text: #E8F0FC;
-    --muted: #8DA1BC;
+import base64
+from pathlib import Path
+
+FONT_PATH = Path(__file__).parent / "assets" / "NetflixSans-Regular.ttf"
+
+if not FONT_PATH.exists():
+    st.error("Netflix Sans font file not found in assets/NetflixSans-Regular.ttf")
+    st.stop()
+
+FONT_BASE64 = base64.b64encode(
+    FONT_PATH.read_bytes()
+).decode("utf-8")
+
+if "bright_theme" not in st.session_state:
+    st.session_state.bright_theme = True
+
+
+# Theme palette
+if st.session_state.bright_theme:
+    theme = {
+        "bg": "#F3F4ED",
+        "sidebar": "#E9EBDD",
+        "panel": "#FFFFFF",
+        "panel_raised": "#F7F8F2",
+        "border": "#D8DDCA",
+        "text": "#202319",
+        "muted": "#6D735F",
+        "accent": "#68764B",
+        "accent_soft": "#EEF1E5",
+        "input": "#FFFFFF",
+        "header": "#F3F4ED",
+        "glow": "rgba(112, 132, 72, .17)",
+        "hero_glow": "rgba(112, 132, 72, .21)",
+        "grid_glow": "rgba(112, 132, 72, .13)",
+        "shadow": "0 8px 26px rgba(50, 60, 35, .07)",
+        "button_end": "#879568",
+        "button_text": "#FFFFFF",
+        "button_glow": "rgba(104, 118, 75, .20)"
+    }
+else:
+    theme = {
+        "bg": "#111315",
+        "sidebar": "#17191B",
+        "panel": "#1C1F22",
+        "panel_raised": "#24282B",
+        "border": "#3A4044",
+        "text": "#F0F1F2",
+        "muted": "#A8AFB3",
+        "accent": "#B7BEC2",
+        "accent_soft": "#292E32",
+        "input": "#202427",
+        "header": "#111315",
+        "glow": "rgba(174, 183, 188, .15)",
+        "hero_glow": "rgba(174, 183, 188, .19)",
+        "grid_glow": "rgba(190, 198, 202, .10)",
+        "shadow": "0 10px 32px rgba(0, 0, 0, .24)",
+        "button_end": "#858D92",
+        "button_text": "#111315",
+        "button_glow": "rgba(190, 198, 202, .16)"
+    }
+
+css = r'''
+@font-face {
+    font-family: "Netflix Sans";
+    src: url(data:font/ttf;base64,__FONT__) format("truetype");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
 }
-
+:root {
+    --bg: __BG__;
+    --sidebar: __SIDEBAR__;
+    --panel: __PANEL__;
+    --panel-raised: __PANEL_RAISED__;
+    --border: __BORDER__;
+    --text: __TEXT__;
+    --muted: __MUTED__;
+    --accent: __ACCENT__;
+    --accent-soft: __ACCENT_SOFT__;
+    --input: __INPUT__;
+    --header: __HEADER__;
+    --shadow: __SHADOW__;
+}
+html, body, [class*="css"], .stApp, h1, h2, h3, h4, p, label, span, div, button, input {
+    font-family: "Netflix Sans", Arial, sans-serif !important;
+}
 .stApp {
     background:
-        radial-gradient(ellipse at 80% 0%, rgba(34,211,238,.09), transparent 35%),
-        radial-gradient(ellipse at 10% 20%, rgba(139,92,246,.08), transparent 35%),
-        var(--bg);
+        radial-gradient(ellipse at 52% -8%, __GLOW__ 0%, transparent 43%),
+        linear-gradient(145deg, var(--bg), var(--bg));
     color: var(--text);
-    font-family: 'Inter', sans-serif;
 }
-
 [data-testid="stHeader"] {
-    background: rgba(8,13,24,.85);
+    background: var(--header);
 }
-
 [data-testid="stSidebar"] {
-    background: linear-gradient(180deg,#0D1728,#09111F);
+    background: var(--sidebar);
     border-right: 1px solid var(--border);
 }
-
 [data-testid="stSidebar"] > div:first-child {
-    padding-top: 2rem;
+    padding-top: 1.8rem;
 }
-
 .block-container {
-    max-width: 1450px;
-    padding-top: 2.5rem;
+    max-width: 1500px;
+    padding-top: 2.1rem;
     padding-bottom: 4rem;
 }
-
-h1,h2,h3,h4,p,label {
-    font-family: 'Inter', sans-serif !important;
+h1, h2, h3, h4 {
+    color: var(--text) !important;
+    letter-spacing: -0.55px;
 }
-
-h1 {
-    font-weight: 800 !important;
-    letter-spacing: -1.5px;
-}
-
-h2,h3 {
-    font-weight: 700 !important;
-    letter-spacing: -.5px;
-}
-
-p, label {
-    color: var(--muted);
-}
+h1 { font-weight: 700 !important; }
+h2, h3 { font-weight: 650 !important; }
+p, label, [data-testid="stCaptionContainer"] { color: var(--muted); }
 
 [data-testid="stMetric"] {
-    background: linear-gradient(145deg,#142239,#101A2B);
+    background: linear-gradient(145deg, var(--panel-raised), var(--panel));
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 19px 20px;
+    box-shadow: var(--shadow);
 }
-
-[data-testid="stMetricLabel"] {
-    color: var(--muted);
-}
-
+[data-testid="stMetricLabel"] { color: var(--muted) !important; }
 [data-testid="stMetricValue"] {
-    color: var(--cyan);
-    font-weight: 800;
+    color: var(--text) !important;
+    font-weight: 700;
 }
-
-[data-testid="stMetricDelta"] {
-    font-size: 12px;
-}
+[data-testid="stMetricDelta"] { font-size: 12px; }
 
 .ab-card {
-    background: linear-gradient(145deg,rgba(19,31,51,.96),rgba(12,22,38,.96));
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, var(--panel-raised), var(--panel));
     border: 1px solid var(--border);
-    border-radius: 16px;
+    border-radius: 12px;
     padding: 22px;
     margin-bottom: 14px;
-    transition: .2s ease;
+    box-shadow: var(--shadow);
+    transition: transform .2s ease, border-color .2s ease;
 }
-
 .ab-card:hover {
-    border-color: rgba(34,211,238,.55);
+    border-color: var(--accent);
     transform: translateY(-2px);
 }
-
-.ab-icon {
-    font-size: 25px;
-    margin-bottom: 14px;
-}
-
+.ab-icon { font-size: 25px; margin-bottom: 14px; }
 .ab-title {
-    color: #F1F5F9;
-    font-size: 17px;
-    font-weight: 700;
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 650;
     margin-bottom: 8px;
 }
-
 .ab-description {
-    color: #91A4BE;
+    color: var(--muted);
     font-size: 13px;
-    line-height: 1.6;
+    line-height: 1.7;
 }
-
 .ab-label {
-    color: var(--cyan);
-    font-family: 'DM Mono',monospace;
+    color: var(--accent);
     font-size: 10px;
-    letter-spacing: 2px;
-    font-weight: 500;
+    letter-spacing: 1.8px;
+    font-weight: 700;
 }
-
 .ab-hero {
+    position: relative;
+    overflow: hidden;
     background:
-        linear-gradient(110deg,rgba(19,34,57,.98),rgba(15,24,43,.88)),
-        radial-gradient(circle at 90% 30%,rgba(34,211,238,.2),transparent 35%);
-    border: 1px solid #2B405D;
-    border-radius: 22px;
-    padding: 34px;
+        radial-gradient(circle at 78% 22%, __HERO_GLOW__, transparent 33%),
+        linear-gradient(120deg, var(--panel-raised), var(--panel));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 42px;
     margin: 15px 0 28px 0;
+    box-shadow: var(--shadow);
 }
-
+.ab-hero:after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: .16;
+    background-image:
+        linear-gradient(__GRID_GLOW__ 1px, transparent 1px),
+        linear-gradient(90deg, __GRID_GLOW__ 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: linear-gradient(90deg, transparent, black);
+}
 .ab-hero-title {
-    color: #F8FAFC;
-    font-size: clamp(30px,4vw,48px);
-    font-weight: 800;
+    position: relative;
+    z-index: 1;
+    color: var(--text);
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 750;
     letter-spacing: -2px;
-    line-height: 1.15;
+    line-height: 1.08;
 }
-
 .ab-hero-sub {
-    color: #A4B6CE;
+    position: relative;
+    z-index: 1;
+    color: var(--muted);
     font-size: 14px;
     line-height: 1.8;
-    max-width: 650px;
+    max-width: 660px;
 }
-
 .ab-divider {
     height: 1px;
-    background: linear-gradient(90deg,#22D3EE55,#A78BFA22,transparent);
-    margin: 22px 0;
+    background: var(--border);
+    margin: 21px 0;
 }
-
 .ab-status {
     display: inline-block;
     padding: 6px 11px;
-    background: #12352F;
-    color: #5EEAD4;
-    border: 1px solid #1D6254;
-    border-radius: 30px;
-    font-size: 11px;
-    font-family: 'DM Mono',monospace;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 650;
 }
-
-.ab-mono {
-    font-family: 'DM Mono',monospace;
-    color: var(--cyan);
-    font-size: 12px;
-}
+.ab-mono { color: var(--accent); font-size: 12px; }
 
 div.stButton > button {
-    background: linear-gradient(100deg,#0891B2,#6366F1);
-    color: white;
-    border: none;
-    border-radius: 9px;
+    background: linear-gradient(100deg, var(--accent), __BUTTON_END__);
+    color: __BUTTON_TEXT__;
+    border: 1px solid transparent;
+    border-radius: 8px;
     font-weight: 700;
     min-height: 43px;
-    transition: .2s;
+    transition: .2s ease;
 }
-
 div.stButton > button:hover {
-    border: 1px solid #67E8F9;
-    color: white;
-    box-shadow: 0 0 22px #22D3EE33;
+    filter: brightness(1.08);
+    border-color: var(--accent);
+    color: __BUTTON_TEXT__;
+    box-shadow: 0 5px 22px __BUTTON_GLOW__;
 }
-
-div[data-baseweb="select"] > div {
-    background: #111D30;
-    border: 1px solid #30435E;
-    border-radius: 9px;
+div[data-baseweb="select"] > div,
+[data-baseweb="input"] > div {
+    background: var(--input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
 }
-
 .stTextInput input, .stNumberInput input {
-    background: #111D30;
-    color: #E8F0FC;
-    border: 1px solid #30435E;
-    border-radius: 9px;
+    background: var(--input);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
 }
-
-div[role="radiogroup"] {
-    gap: 8px;
+[data-baseweb="popover"], [data-baseweb="menu"] {
+    background: var(--panel-raised);
 }
-
-[data-testid="stRadio"] label {
-    color: #C8D5E7;
+div[role="radiogroup"] { gap: 8px; }
+[data-testid="stRadio"] label { color: var(--text); }
+[data-testid="stDataFrame"] {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
 }
-
-[data-testid="stCaptionContainer"] {
-    color: #8298B4;
-}
-
-footer {
-    visibility: hidden;
-}
-
-#MainMenu {
-    visibility: hidden;
-}
-
+[data-testid="stAlert"] { border-radius: 9px; }
+[data-testid="stToggle"] label { color: var(--text) !important; }
+footer, #MainMenu { visibility: hidden; }
 </style>
-""", unsafe_allow_html=True)
+'''
+
+values = {
+    "__FONT__": FONT_BASE64,
+    "__BG__": theme["bg"],
+    "__SIDEBAR__": theme["sidebar"],
+    "__PANEL__": theme["panel"],
+    "__PANEL_RAISED__": theme["panel_raised"],
+    "__BORDER__": theme["border"],
+    "__TEXT__": theme["text"],
+    "__MUTED__": theme["muted"],
+    "__ACCENT__": theme["accent"],
+    "__ACCENT_SOFT__": theme["accent_soft"],
+    "__INPUT__": theme["input"],
+    "__HEADER__": theme["header"],
+    "__GLOW__": theme["glow"],
+    "__HERO_GLOW__": theme["hero_glow"],
+    "__GRID_GLOW__": theme["grid_glow"],
+    "__SHADOW__": theme["shadow"],
+    "__BUTTON_END__": theme["button_end"],
+    "__BUTTON_TEXT__": theme["button_text"],
+    "__BUTTON_GLOW__": theme["button_glow"]
+}
+for key, value in values.items():
+    css = css.replace(key, value)
+
+st.markdown(f"""<style>{css}</style>""", unsafe_allow_html=True)
+
 
 
 # SIDEBAR
 
 with st.sidebar:
 
-    st.markdown("""
+    st.markdown(f"""
     <div style="padding:0 0 24px 4px">
-        <div style="font-size:30px;font-weight:800;color:#F1F5F9">
-            ⚡ Algo<span style="color:#22D3EE">Bench</span>
+        <div style="font-size:30px;font-weight:800;color:{theme["text"]}">
+            ⚡ Algo<span style="color:{theme["text"]}">Bench</span>
         </div>
-        <div style="font-size:9px;letter-spacing:2px;color:#8298B4;margin-top:5px">
+        <div style="font-size:9px;letter-spacing:2px;color:{theme["muted"]};margin-top:5px">
             NEXUS PERFORMANCE LAB
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    st.markdown('<div class="ab-divider"></div>', unsafe_allow_html=True)
+
+    st.toggle("Bright theme", key="bright_theme")
 
     st.markdown('<div class="ab-divider"></div>', unsafe_allow_html=True)
 
@@ -282,8 +358,8 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div style="padding:10px 5px;color:#61748F;font-size:11px">
+    st.markdown(f"""
+    <div style="padding:10px 5px;color:{theme["muted"]};font-size:11px">
         ALGOBENCH NEXUS<br>
         VERSION 1.0.0
     </div>
@@ -317,7 +393,7 @@ if page == "Overview":
         <br>
         <div class="ab-hero-title">
             Measure. Analyze.<br>
-            <span style="color:#22D3EE">Optimize.</span>
+            Optimize.
         </div>
         <br>
         <div class="ab-hero-sub">
@@ -653,22 +729,26 @@ elif page == "Run Benchmark":
 elif page == "Compare Results":
 
     st.title("Performance Comparison")
-    st.caption("Compare algorithm execution metrics and scalability.")
+    st.caption("Analyze actual algorithm benchmarking results.")
 
-    st.markdown("""
-    <div class="ab-card">
-        <div class="ab-label">ANALYTICS MODULE</div>
-        <div class="ab-title">Performance Intelligence</div>
-        <div class="ab-description">
-            Compare algorithms using measured benchmark results.
-            Charts will populate after benchmark execution.
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    results = st.session_state.get("benchmark_results", [])
 
-    st.info("No benchmark results available yet. Run an experiment first.")
+    if results:
+        show_benchmark_metrics(results)
 
+        st.markdown("---")
 
+        show_runtime_chart(results)
+
+        st.markdown("---")
+
+        show_csv_download(results)
+
+    else:
+        st.info(
+            "No benchmark results available yet. "
+            "Run an experiment to see performance comparisons."
+        )
 # PROFILER
 
 elif page == "Profiler":
@@ -755,9 +835,9 @@ elif page == "History":
 # FOOTER
 
 st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown("""
-<div style="border-top:1px solid #24334A;padding-top:18px;
-text-align:center;color:#60748F;font-size:11px;letter-spacing:1px">
+st.markdown(f"""
+<div style="border-top:1px solid {theme["border"]};padding-top:18px;
+text-align:center;color:{theme["muted"]};font-size:11px;letter-spacing:1px">
     ALGOBENCH NEXUS · BUILT FOR PERFORMANCE ENGINEERING
 </div>
 """, unsafe_allow_html=True)
