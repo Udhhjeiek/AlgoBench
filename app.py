@@ -1,6 +1,12 @@
 
 import streamlit as st
 
+from visualization.dashboard_charts import (
+    show_benchmark_metrics,
+    show_runtime_chart,
+    show_csv_download
+)
+
 st.set_page_config(
     page_title="AlgoBench | Nexus",
     page_icon="⚡",
