@@ -409,99 +409,237 @@ if page == "Overview":
 
 # RUN BENCHMARK PAGE
 
+
+# RUN BENCHMARK PAGE
+
 elif page == "Run Benchmark":
 
     st.title("Benchmark Configuration")
-    st.caption("Configure an experiment before executing the benchmarking engine.")
+    st.caption("Design and configure your algorithm performance experiment.")
 
     st.markdown("""
     <div class="ab-card">
-        <div class="ab-label">EXPERIMENT SETUP</div>
+        <div class="ab-label">EXPERIMENT CONTROL CENTER</div>
         <div class="ab-title">Configure your workload</div>
         <div class="ab-description">
-            Select the algorithm domain, input characteristics
-            and execution parameters.
+            Select algorithms, define dataset characteristics and
+            configure execution parameters before benchmarking.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    col1,col2 = st.columns(2)
-
-    with col1:
-        category = st.selectbox(
-            "Algorithm Category",
-            ["Sorting","Searching","Graph","Dynamic Programming","Matrix"]
-        )
-
     algorithm_options = {
-        "Sorting": ["Quick Sort","Merge Sort","Heap Sort","Insertion Sort"],
-        "Searching": ["Linear Search","Binary Search","Hash Table Lookup"],
-        "Graph": ["Dijkstra","Bellman-Ford","BFS"],
+        "Sorting": [
+            "Quick Sort",
+            "Merge Sort",
+            "Heap Sort",
+            "Insertion Sort"
+        ],
+        "Searching": [
+            "Linear Search",
+            "Binary Search",
+            "Hash Table Lookup"
+        ],
+        "Graph": [
+            "Dijkstra",
+            "Bellman-Ford",
+            "BFS"
+        ],
         "Dynamic Programming": [
             "LCS - Memoization",
             "LCS - Tabulation",
             "Knapsack - Memoization",
             "Knapsack - Tabulation"
         ],
-        "Matrix": ["Standard Multiplication","Strassen Multiplication"]
+        "Matrix": [
+            "Standard Multiplication",
+            "Strassen Multiplication"
+        ]
     }
+
+    input_options = {
+        "Sorting": [
+            "Random",
+            "Sorted",
+            "Reverse Sorted",
+            "Nearly Sorted"
+        ],
+        "Searching": [
+            "Random",
+            "Sorted",
+            "Reverse Sorted"
+        ],
+        "Graph": [
+            "Sparse",
+            "Dense"
+        ],
+        "Dynamic Programming": [
+            "Random"
+        ],
+        "Matrix": [
+            "Random"
+        ]
+    }
+
+    st.markdown("### 01 / Algorithm Selection")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        category = st.selectbox(
+            "Algorithm Category",
+            list(algorithm_options.keys()),
+            key="benchmark_category"
+        )
 
     with col2:
         algorithms = st.multiselect(
             "Select Algorithms",
             algorithm_options[category],
-            default=algorithm_options[category][:1]
+            default=algorithm_options[category][:1],
+            key="benchmark_algorithms"
         )
 
-    st.markdown("### Dataset Parameters")
+    st.markdown('<div class="ab-divider"></div>',
+                unsafe_allow_html=True)
 
-    col1,col2,col3 = st.columns(3)
+    st.markdown("### 02 / Dataset Configuration")
+
+    col1, col2 = st.columns(2)
 
     with col1:
         input_size = st.selectbox(
-            "Input Size",
-            [100,500,1000,5000,10000,50000]
+            "Dataset Size",
+            [100, 500, 1000, 5000, 10000, 50000],
+            index=2
         )
 
     with col2:
         input_type = st.selectbox(
             "Input Distribution",
-            ["Random","Sorted","Reverse Sorted","Nearly Sorted"]
-            if category in ["Sorting","Searching"]
-            else ["Random","Sparse","Dense"]
-            if category == "Graph"
-            else ["Random"]
+            input_options[category]
         )
 
-    with col3:
+    if category == "Sorting":
+        st.caption(
+            "Dataset size represents the number of array elements."
+        )
+
+    elif category == "Searching":
+        st.caption(
+            "Dataset size represents the number of elements "
+            "in the search collection."
+        )
+
+    elif category == "Graph":
+        st.caption(
+            "Dataset size represents the number of graph vertices. "
+            "The generator will determine the number of edges "
+            "based on graph density."
+        )
+
+    elif category == "Dynamic Programming":
+        st.caption(
+            "Dataset size represents the input length or number "
+            "of items, depending on the selected algorithm."
+        )
+
+    elif category == "Matrix":
+        st.caption(
+            "Dataset size represents the dimension of square matrices."
+        )
+
+    if category == "Searching":
+        search_mode = st.radio(
+            "Search Query Type",
+            ["Successful Search", "Unsuccessful Search"],
+            horizontal=True
+        )
+    else:
+        search_mode = None
+
+    st.markdown('<div class="ab-divider"></div>',
+                unsafe_allow_html=True)
+
+    st.markdown("### 03 / Execution Parameters")
+
+    col1, col2 = st.columns(2)
+
+    with col1:
         trials = st.number_input(
             "Number of Trials",
             min_value=1,
             max_value=50,
-            value=5
+            value=5,
+            step=1
         )
 
-    st.markdown("<br>", unsafe_allow_html=True)
+    with col2:
+        random_seed = st.number_input(
+            "Random Seed",
+            min_value=0,
+            max_value=999999,
+            value=42,
+            step=1
+        )
 
-    st.markdown("""
-    <div class="ab-label">EXECUTION CONTROL</div>
-    """, unsafe_allow_html=True)
+    st.caption(
+        "Using the same random seed helps reproduce generated datasets."
+    )
 
-    if st.button("⚡  Initialize Benchmark", use_container_width=True):
-        if not algorithms:
-            st.warning("Select at least one algorithm.")
-        else:
-            st.info(
-                "Configuration captured. The benchmarking engine "
-                "will be connected in the next integration stage."
+    st.markdown('<div class="ab-divider"></div>',
+                unsafe_allow_html=True)
+
+    st.markdown("### 04 / Experiment Summary")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Algorithms Selected", len(algorithms))
+    col2.metric("Dataset Size", f"{input_size:,}")
+    col3.metric("Total Trials", len(algorithms) * trials)
+
+    if category == "Searching" and "Binary Search" in algorithms:
+        if input_type != "Sorted":
+            st.warning(
+                "Binary Search requires sorted input. "
+                "The dataset generator must sort the data before searching."
             )
-            st.write({
+
+    if st.button(
+        "⚡ Prepare Benchmark Configuration",
+        use_container_width=True
+    ):
+
+        if not algorithms:
+            st.error("Please select at least one algorithm.")
+
+        else:
+            config = {
                 "category": category,
                 "algorithms": algorithms,
                 "input_size": input_size,
                 "input_type": input_type,
-                "trials": trials
-            })
+                "trials": int(trials),
+                "random_seed": int(random_seed),
+                "search_mode": search_mode
+            }
+
+            st.session_state["benchmark_config"] = config
+
+            st.success(
+                "Benchmark configuration prepared successfully!"
+            )
+
+    if "benchmark_config" in st.session_state:
+
+        st.markdown("### Prepared Experiment")
+
+        st.json(st.session_state["benchmark_config"])
+
+        st.info(
+            "Configuration is ready. Actual execution will be enabled "
+            "after integration with the benchmarking engine."
+        )
 
 
 # COMPARE RESULTS
