@@ -1,0 +1,21 @@
+         45374 function calls in 0.026 seconds
+
+   Ordered by: cumulative time
+   List reduced from 46 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.012    0.012    0.026    0.026 {method 'get' of '_queue.SimpleQueue' objects}
+        1    0.000    0.000    0.010    0.010 C:\Python314\Lib\concurrent\futures\thread.py:81(run)
+        1    0.000    0.000    0.010    0.010 C:\Python314\Lib\concurrent\futures\thread.py:71(run)
+        1    0.000    0.000    0.010    0.010 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\polling_path_watcher.py:89(task)
+        1    0.000    0.000    0.010    0.010 {built-in method time.sleep}
+        1    0.000    0.000    0.010    0.010 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\polling_path_watcher.py:95(_check_if_path_changed)
+        1    0.000    0.000    0.010    0.010 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\util.py:138(path_modification_time)
+        1    0.006    0.006    0.009    0.009 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\dynamic_programming.py:172(knapsack_tabulation)
+    45209    0.007    0.000    0.007    0.000 {built-in method builtins.max}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\polling_path_watcher.py:88(_schedule)
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\concurrent\futures\thread.py:199(submit)
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\concurrent\futures\_base.py:495(set_running_or_notify_cancel)
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\util.py:87(calc_hash)
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\concurrent\futures\_base.py:323(__init__)

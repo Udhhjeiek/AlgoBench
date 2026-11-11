@@ -1,0 +1,21 @@
+         244 function calls in 0.004 seconds
+
+   Ordered by: cumulative time
+   List reduced from 135 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        2    0.001    0.000    0.003    0.001 C:\Python314\Lib\concurrent\futures\thread.py:81(run)
+        2    0.000    0.000    0.002    0.001 C:\Python314\Lib\asyncio\base_events.py:1976(_run_once)
+        2    0.000    0.000    0.002    0.001 C:\Python314\Lib\concurrent\futures\thread.py:71(run)
+        2    0.000    0.000    0.002    0.001 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\polling_path_watcher.py:89(task)
+        2    0.000    0.000    0.002    0.001 C:\Python314\Lib\asyncio\windows_events.py:444(select)
+        2    0.000    0.000    0.002    0.001 C:\Python314\Lib\asyncio\windows_events.py:765(_poll)
+        4    0.000    0.000    0.002    0.000 {built-in method _overlapped.GetQueuedCompletionStatus}
+        1    0.001    0.001    0.001    0.001 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\searching.py:8(linear_search)
+        5    0.000    0.000    0.001    0.000 C:\Python314\Lib\asyncio\events.py:92(_run)
+        5    0.000    0.000    0.001    0.000 {method 'run' of '_contextvars.Context' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\web\server\starlette\starlette_websocket.py:339(_sender)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\starlette\websockets.py:174(send_bytes)
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\starlette\websockets.py:65(send)
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\starlette\_exception_handler.py:34(sender)

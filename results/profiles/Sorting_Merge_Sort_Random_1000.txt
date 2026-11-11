@@ -1,0 +1,10 @@
+         34669 function calls (32671 primitive calls) in 0.015 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+   1999/1    0.009    0.000    0.014    0.014 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\sorting.py:24(merge_sort)
+    21950    0.003    0.000    0.003    0.000 {built-in method builtins.len}
+     8721    0.001    0.000    0.001    0.000 {method 'append' of 'list' objects}
+        1    0.001    0.001    0.001    0.001 {method 'disable' of '_lsprof.Profiler' objects}
+     1998    0.000    0.000    0.000    0.000 {method 'extend' of 'list' objects}

@@ -1,0 +1,21 @@
+         208223 function calls (198223 primitive calls) in 0.135 seconds
+
+   Ordered by: cumulative time
+   List reduced from 110 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        8    0.000    0.000    0.105    0.013 C:\Python314\Lib\asyncio\windows_events.py:444(select)
+      8/5    0.000    0.000    0.087    0.017 C:\Python314\Lib\asyncio\base_events.py:1976(_run_once)
+        8    0.019    0.002    0.067    0.008 C:\Python314\Lib\asyncio\windows_events.py:765(_poll)
+        7    0.001    0.000    0.029    0.004 {built-in method _overlapped.GetQueuedCompletionStatus}
+   132655    0.023    0.000    0.023    0.000 {built-in method builtins.len}
+    55201    0.013    0.000    0.013    0.000 {method 'append' of 'list' objects}
+     9998    0.003    0.000    0.003    0.000 {method 'extend' of 'list' objects}
+        1    0.000    0.000    0.001    0.001 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\util.py:96(calc_hash_with_blocking_retries)
+       10    0.000    0.000    0.001    0.000 C:\Python314\Lib\asyncio\events.py:92(_run)
+       10    0.000    0.000    0.001    0.000 {method 'run' of '_contextvars.Context' objects}
+        1    0.000    0.000    0.001    0.001 {built-in method nt._path_exists}
+        1    0.001    0.001    0.001    0.001 {method 'disable' of '_lsprof.Profiler' objects}
+        2    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\runtime\runtime.py:754(_loop_coroutine)
+        2    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\tasks.py:405(wait)
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\polling_path_watcher.py:88(_schedule)

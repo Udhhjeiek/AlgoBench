@@ -1,0 +1,21 @@
+         18778 function calls (9198 primitive calls) in 0.017 seconds
+
+   Ordered by: cumulative time
+   List reduced from 67 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      2/1    0.000    0.000    0.016    0.016 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\dynamic_programming.py:25(lcs_memoization)
+   9580/1    0.014    0.000    0.016    0.016 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\dynamic_programming.py:44(solve)
+     9029    0.001    0.000    0.001    0.000 {built-in method builtins.max}
+        2    0.000    0.000    0.001    0.000 C:\Python314\Lib\asyncio\base_events.py:1976(_run_once)
+        4    0.000    0.000    0.001    0.000 C:\Python314\Lib\asyncio\events.py:92(_run)
+        4    0.000    0.000    0.000    0.000 {method 'run' of '_contextvars.Context' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\runtime\runtime.py:754(_loop_coroutine)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\tasks.py:405(wait)
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\functools.py:593(decorating_function)
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\tasks.py:490(_wait)
+        2    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\windows_events.py:444(select)
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\futures.py:319(_set_result_unless_cancelled)
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\functools.py:35(update_wrapper)
+        2    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\windows_events.py:765(_poll)

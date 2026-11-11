@@ -1,0 +1,8 @@
+# AlgoBench application dependencies
+streamlit>=1.67
+pandas>=2.2
+matplotlib>=3.8
+numpy>=1.26
+
+# Development and test dependency
+pytest>=8.0

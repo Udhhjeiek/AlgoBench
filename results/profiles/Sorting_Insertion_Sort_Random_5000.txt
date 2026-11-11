@@ -1,0 +1,21 @@
+         971 function calls (949 primitive calls) in 0.521 seconds
+
+   Ordered by: cumulative time
+   List reduced from 128 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        4    0.000    0.000    0.506    0.127 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\watchdog\observers\winapi.py:651(get_events)
+        4    0.000    0.000    0.506    0.127 C:\Python314\Lib\queue.py:177(get)
+    15/14    0.000    0.000    0.459    0.033 C:\Python314\Lib\asyncio\base_events.py:1976(_run_once)
+    15/14    0.000    0.000    0.362    0.026 C:\Python314\Lib\asyncio\windows_events.py:444(select)
+    15/14    0.000    0.000    0.331    0.024 C:\Python314\Lib\asyncio\windows_events.py:765(_poll)
+      5/4    0.000    0.000    0.270    0.068 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\watchdog\observers\read_directory_changes.py:74(queue_events)
+        3    0.047    0.016    0.202    0.067 C:\Python314\Lib\concurrent\futures\thread.py:81(run)
+        3    0.031    0.010    0.155    0.052 C:\Python314\Lib\concurrent\futures\thread.py:71(run)
+        3    0.126    0.042    0.126    0.042 C:\Python314\Lib\threading.py:337(wait)
+       13    0.108    0.008    0.108    0.008 {built-in method _overlapped.GetQueuedCompletionStatus}
+      8/7    0.091    0.011    0.091    0.013 {built-in method nt._path_exists}
+        3    0.000    0.000    0.077    0.026 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\polling_path_watcher.py:89(task)
+      4/3    0.000    0.000    0.077    0.026 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\polling_path_watcher.py:95(_check_if_path_changed)
+        4    0.000    0.000    0.061    0.015 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\util.py:96(calc_hash_with_blocking_retries)
+        1    0.051    0.051    0.051    0.051 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\sorting.py:70(insertion_sort)

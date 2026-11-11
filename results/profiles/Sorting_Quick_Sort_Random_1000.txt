@@ -1,0 +1,21 @@
+         3043 function calls (1845 primitive calls) in 0.003 seconds
+
+   Ordered by: cumulative time
+   List reduced from 34 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        2    0.000    0.000    0.003    0.001 C:\Python314\Lib\asyncio\events.py:130(_run)
+        2    0.000    0.000    0.003    0.001 C:\Python314\Lib\asyncio\events.py:92(_run)
+        2    0.000    0.000    0.003    0.001 {method 'run' of '_contextvars.Context' objects}
+        1    0.000    0.000    0.003    0.003 C:\Users\banso\Desktop\AlgoBench_Final_Submission_Package\AlgoBench\.venv\Lib\site-packages\streamlit\runtime\app_session.py:957(<lambda>)
+        1    0.000    0.000    0.003    0.003 C:\Users\banso\Desktop\AlgoBench_Final_Submission_Package\AlgoBench\.venv\Lib\site-packages\streamlit\runtime\app_session.py:984(_handle_scriptrunner_event_on_event_loop)
+        1    0.000    0.000    0.003    0.003 C:\Users\banso\Desktop\AlgoBench_Final_Submission_Package\AlgoBench\.venv\Lib\site-packages\streamlit\runtime\app_session.py:543(_enqueue_forward_msg)
+        1    0.000    0.000    0.003    0.003 C:\Users\banso\Desktop\AlgoBench_Final_Submission_Package\AlgoBench\.venv\Lib\site-packages\streamlit\runtime\runtime.py:897(_enqueued_some_message)
+        1    0.000    0.000    0.003    0.003 C:\Python314\Lib\asyncio\base_events.py:870(call_soon_threadsafe)
+        1    0.000    0.000    0.003    0.003 C:\Python314\Lib\asyncio\proactor_events.py:818(_write_to_self)
+        1    0.000    0.000    0.003    0.003 {method 'send' of '_socket.socket' objects}
+        1    0.000    0.000    0.002    0.002 C:\Users\banso\Desktop\AlgoBench_Final_Submission_Package\AlgoBench\algorithms\sorting.py:8(quick_sort)
+   1199/1    0.002    0.000    0.002    0.002 C:\Users\banso\Desktop\AlgoBench_Final_Submission_Package\AlgoBench\algorithms\sorting.py:12(sort)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+     1799    0.000    0.000    0.000    0.000 {built-in method builtins.len}
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Final_Submission_Package\AlgoBench\.venv\Lib\site-packages\streamlit\runtime\forward_msg_queue.py:67(enqueue)
