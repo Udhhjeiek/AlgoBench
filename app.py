@@ -1,5 +1,7 @@
 
 import streamlit as st
+import streamlit.components.v1 as components
+import tempfile
 
 from visualization.dashboard_charts import (
     show_benchmark_metrics,
@@ -18,7 +20,15 @@ st.set_page_config(
 import base64
 from pathlib import Path
 
-FONT_PATH = Path(__file__).parent / "assets" / "NetflixSans-Regular.ttf"
+PROJECT_DIR = Path(__file__).resolve().parent
+LOGO_PATH = PROJECT_DIR / "Logo_Final.svg"
+FONT_PATH = PROJECT_DIR / "assets" / "NetflixSans-Regular.ttf"
+
+# Encode the existing SVG so the browser can display it without a separate URL.
+LOGO_DATA_URI = (
+    "data:image/svg+xml;base64," + base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+    if LOGO_PATH.is_file() else None
+)
 
 if not FONT_PATH.exists():
     st.error("Netflix Sans font file not found in assets/NetflixSans-Regular.ttf")
@@ -27,6 +37,583 @@ if not FONT_PATH.exists():
 FONT_BASE64 = base64.b64encode(
     FONT_PATH.read_bytes()
 ).decode("utf-8")
+
+
+# Intro animation component. The HTML file is generated locally from this app.py,
+# so no extra frontend build step is needed.
+LANDING_COMPONENT_DIR = Path(tempfile.gettempdir()) / "algobench_landing_component"
+LANDING_COMPONENT_DIR.mkdir(exist_ok=True)
+LANDING_COMPONENT_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@font-face {
+    font-family: "Netflix Sans";
+    src: url(data:font/ttf;base64,LANDING_FONT_DATA) format("truetype");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+:root {
+    --intro-bg: #111315;
+    --intro-panel: #1C1F22;
+    --intro-text: #F0F1F2;
+    --intro-muted: #A8AFB3;
+    --intro-accent: #B7BEC2;
+    --intro-glow: rgba(174,183,188,.15);
+}
+* { box-sizing: border-box; }
+html, body {
+    margin: 0;
+    width: 100%;
+    min-height: 100%;
+    background: var(--intro-bg);
+    color: var(--intro-text);
+    font-family: "Netflix Sans", Arial, sans-serif;
+    overflow: hidden;
+}
+.landing {
+    width: 100%;
+    min-height: 790px;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    isolation: isolate;
+    background:
+        radial-gradient(ellipse at 50% 42%, var(--intro-glow) 0%, transparent 42%),
+        linear-gradient(145deg, var(--intro-bg), var(--intro-bg));
+}
+.ambient {
+    position: absolute;
+    width: min(900px, 95vw);
+    height: min(900px, 95vw);
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--intro-glow), transparent 67%);
+    filter: blur(24px);
+    opacity: .8;
+    pointer-events: none;
+}
+.landing-content {
+    width: 100%;
+    max-width: 1100px;
+    min-height: 790px;
+    height: 100%;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    text-align: center;
+}
+.topline {
+    position: absolute;
+    top: 34px;
+    left: 28px;
+    right: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--intro-muted);
+    font-size: 10px;
+    letter-spacing: 2.3px;
+    text-transform: uppercase;
+}
+.topline .status { display: flex; align-items: center; gap: 8px; }
+.status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--intro-accent);
+    box-shadow: 0 0 12px var(--intro-accent);
+}
+.brand-kicker {
+    font-size: 11px;
+    color: var(--intro-muted);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+    opacity: .95;
+}
+.mark-stage {
+    width: min(470px, 74vw);
+    height: min(470px, 74vw);
+    min-width: 280px;
+    min-height: 280px;
+    position: relative;
+    display: grid;
+    place-items: center;
+    margin: 0 0 14px;
+}
+.ring {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    transform-origin: center;
+}
+.ring-primary {
+    inset: 3%;
+    border: 1px solid color-mix(in srgb, var(--intro-accent) 74%, transparent);
+    box-shadow: 0 0 34px var(--intro-glow), inset 0 0 28px var(--intro-glow);
+    animation: idle-clockwise 32s linear infinite;
+}
+.ring-primary::before {
+    content: "";
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    border: 1px dashed color-mix(in srgb, var(--intro-accent) 55%, transparent);
+}
+.ring-primary::after {
+    content: "";
+    position: absolute;
+    left: 50%; top: -5px;
+    width: 9px; height: 9px;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: var(--intro-accent);
+    box-shadow: 0 0 20px var(--intro-accent);
+}
+.ring-secondary {
+    inset: 13%;
+    border: 1px solid color-mix(in srgb, var(--intro-accent) 40%, transparent);
+    animation: idle-counter 42s linear infinite;
+}
+.ring-secondary::before, .ring-secondary::after {
+    content: "";
+    position: absolute;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--intro-accent);
+    opacity: .8;
+}
+.ring-secondary::before { left: 13%; top: 20%; }
+.ring-secondary::after { right: 10%; bottom: 19%; }
+.ring-tertiary {
+    inset: 23%;
+    border: 1px solid color-mix(in srgb, var(--intro-accent) 24%, transparent);
+}
+.mark-button {
+    position: relative;
+    z-index: 3;
+    border: 0;
+    padding: 0;
+    width: 76%;
+    height: 76%;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    cursor: pointer;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.mark-button:focus-visible {
+    outline: 1px solid var(--intro-accent);
+    outline-offset: 12px;
+}
+.mark-button img {
+    display: block;
+    width: 100%;
+    max-width: 370px;
+    max-height: 370px;
+    object-fit: contain;
+    position: relative;
+    left: clamp(18px, 2.5vw, 42px);
+    filter: drop-shadow(0 12px 28px var(--intro-glow));
+    transition: transform .35s ease, filter .35s ease;
+}
+.mark-button:hover img {
+    /* Keep the logo anchored; hover only changes its shadow. */
+    filter: drop-shadow(0 14px 34px var(--intro-glow));
+}
+.fallback-mark {
+    color: var(--intro-text);
+    font-size: clamp(120px, 20vw, 190px);
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -12px;
+}
+.wordmark {
+    color: var(--intro-text);
+    font-size: clamp(26px, 4vw, 38px);
+    font-weight: 650;
+    letter-spacing: -.8px;
+    margin-top: 4px;
+}
+.wordmark span { color: var(--intro-accent); }
+.tagline {
+    margin-top: 9px;
+    color: var(--intro-muted);
+    font-size: 10px;
+    letter-spacing: 3.2px;
+    text-transform: uppercase;
+}
+.enter-hint {
+    margin-top: 34px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    color: var(--intro-muted);
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    transition: opacity .25s ease, transform .25s ease;
+}
+.enter-hint .line {
+    width: 36px; height: 1px; background: var(--intro-accent); opacity: .7;
+}
+.bottomline {
+    position: absolute;
+    bottom: 29px;
+    color: var(--intro-muted);
+    font-size: 9px;
+    letter-spacing: 2px;
+    opacity: .72;
+    text-transform: uppercase;
+}
+@keyframes idle-clockwise { to { transform: rotate(360deg); } }
+@keyframes idle-counter { to { transform: rotate(-360deg); } }
+@keyframes reverse-primary {
+    0% { transform: rotate(0deg) scale(1); opacity: 1; }
+    68% { transform: rotate(-510deg) scale(.86); opacity: .58; }
+    100% { transform: rotate(-760deg) scale(.38); opacity: 0; }
+}
+@keyframes reverse-secondary {
+    0% { transform: rotate(0deg) scale(1); opacity: .8; }
+    100% { transform: rotate(620deg) scale(.55); opacity: 0; }
+}
+@keyframes ring-disappear {
+    to { opacity: 0; transform: scale(.72); }
+}
+@keyframes mark-launch {
+    0% { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+    24% { opacity: 1; transform: translate3d(0,-12px,0) scale(1.04); }
+    100% { opacity: 0; transform: translate3d(0,-115vh,0) scale(.58); }
+}
+@keyframes text-dissolve {
+    to { opacity: 0; transform: translateY(12px); }
+}
+.landing.launching .ring-primary { animation: reverse-primary 1.12s cubic-bezier(.65,0,.35,1) forwards; }
+.landing.launching .ring-secondary { animation: reverse-secondary .92s ease-in forwards; }
+.landing.launching .ring-tertiary { animation: ring-disappear .62s ease-in forwards; }
+.landing.launching .mark-button { animation: mark-launch .76s cubic-bezier(.7,0,.84,.22) 1.15s forwards; }
+.landing.launching .brand-kicker,
+.landing.launching .wordmark,
+.landing.launching .tagline,
+.landing.launching .enter-hint,
+.landing.launching .topline,
+.landing.launching .bottomline { animation: text-dissolve .38s ease forwards; }
+.landing.launching .brand-kicker { animation-delay: .08s; }
+.landing.launching .enter-hint { animation-delay: .12s; }
+@media (max-width: 650px) {
+    .landing, .landing-content { min-height: 690px; }
+    .mark-stage { width: 86vw; height: 86vw; }
+    .mark-button { width: 78%; height: 78%; }
+    .mark-button img {
+        max-width: 300px;
+        max-height: 300px;
+        left: 16px;
+    }
+    .mark-button:hover img {
+        /* No translation or scaling on hover on small screens either. */
+        filter: drop-shadow(0 14px 34px var(--intro-glow));
+    }
+    .bottomline { bottom: 18px; font-size: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .ring-primary, .ring-secondary { animation: none; }
+    .mark-button, .ring { transition: none; }
+}
+</style>
+</head>
+<body>
+<main class="landing" id="landing">
+    <div class="ambient"></div>
+    <div class="landing-content">
+        <div class="mark-stage">
+            <div class="ring ring-primary"></div>
+            <div class="ring ring-secondary"></div>
+            <div class="ring ring-tertiary"></div>
+            <button class="mark-button" id="launch" aria-label="Enter AlgoBench">
+                <img id="logo" alt="AlgoBench A logo" style="display:none">
+                <span class="fallback-mark" id="fallback">A</span>
+            </button>
+        </div>
+        <div class="wordmark">Algo<span>Bench</span></div>
+        <div class="tagline">Algorithm Benchmarking &amp; Profiling Suite</div>
+        <div class="enter-hint"><span class="line"></span>Click the mark to enter<span class="line"></span></div>
+        <div class="bottomline">Measure accurately · Understand deeply · Optimize intelligently</div>
+    </div>
+</main>
+<script>
+(function () {
+    let hasStarted = false;
+    let args = {};
+
+    function applyArgs(nextArgs) {
+        args = nextArgs || {};
+        const root = document.documentElement;
+        root.style.setProperty('--intro-bg', args.bg || '#111315');
+        root.style.setProperty('--intro-panel', args.panel || '#1C1F22');
+        root.style.setProperty('--intro-text', args.text || '#F0F1F2');
+        root.style.setProperty('--intro-muted', args.muted || '#A8AFB3');
+        root.style.setProperty('--intro-accent', args.accent || '#B7BEC2');
+        root.style.setProperty('--intro-glow', args.glow || 'rgba(174,183,188,.15)');
+        if (args.font) {
+            const fontStyle = document.createElement('style');
+            fontStyle.textContent = '@font-face{font-family:"Netflix Sans";src:url(data:font/ttf;base64,' + args.font + ') format("truetype");font-display:swap;}';
+            document.head.appendChild(fontStyle);
+        }
+        const logo = document.getElementById('logo');
+        const fallback = document.getElementById('fallback');
+        if (args.logo) {
+            logo.src = args.logo;
+            logo.style.display = 'block';
+            fallback.style.display = 'none';
+        }
+        sendHeight();
+    }
+
+    function sendHeight() {
+        window.parent.postMessage({isStreamlitMessage:true, type:'streamlit:setFrameHeight', height:790}, '*');
+    }
+
+    function completeIntro() {
+        window.parent.postMessage({
+            isStreamlitMessage: true,
+            type: 'streamlit:setComponentValue',
+            value: true,
+            dataType: 'json'
+        }, '*');
+    }
+
+    document.getElementById('launch').addEventListener('click', function () {
+        if (hasStarted) return;
+        hasStarted = true;
+        document.getElementById('landing').classList.add('launching');
+        this.disabled = true;
+        window.setTimeout(completeIntro, 1950);
+    });
+
+    window.addEventListener('message', function (event) {
+        if (event.data && event.data.type === 'streamlit:render') {
+            applyArgs(event.data.args || {});
+        }
+    });
+
+    window.parent.postMessage({
+        isStreamlitMessage: true,
+        type: 'streamlit:componentReady',
+        apiVersion: 1
+    }, '*');
+    sendHeight();
+})();
+</script>
+</body>
+</html>
+"""
+LANDING_COMPONENT_HTML = LANDING_COMPONENT_HTML.replace("LANDING_FONT_DATA", FONT_BASE64)
+(LANDING_COMPONENT_DIR / "index.html").write_text(LANDING_COMPONENT_HTML, encoding="utf-8")
+landing_component = components.declare_component(
+    "algobench_intro_screen",
+    path=str(LANDING_COMPONENT_DIR)
+)
+
+
+# Compact animated brand component used in the dashboard sidebar.
+SIDEBAR_BRAND_DIR = Path(tempfile.gettempdir()) / "algobench_sidebar_brand"
+SIDEBAR_BRAND_DIR.mkdir(exist_ok=True)
+SIDEBAR_BRAND_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+* { box-sizing: border-box; }
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: transparent;
+}
+.brand-wrap {
+    width: 88px;
+    height: 88px;
+    display: grid;
+    place-items: center;
+    overflow: visible;
+}
+.brand-trigger {
+    position: relative;
+    width: 84px;
+    height: 84px;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.brand-trigger:focus-visible {
+    outline: 1px solid var(--brand-accent);
+    outline-offset: 2px;
+}
+.brand-ring, .brand-orbit {
+    position: absolute;
+    inset: 5px;
+    border: 1px solid var(--brand-ring);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.brand-ring-inner {
+    position: absolute;
+    inset: 13px;
+    border: 1px solid var(--brand-ring-inner);
+    border-radius: 50%;
+}
+.brand-orbit {
+    inset: 0;
+    border: 1px dashed var(--brand-ring-dashed);
+    animation: brand-orbit 9s linear infinite;
+}
+.brand-orbit::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 6px;
+    height: 6px;
+    transform: translate(-50%, -1px);
+    border-radius: 50%;
+    background: var(--brand-accent);
+    box-shadow: 0 0 9px var(--brand-glow);
+}
+.brand-logo {
+    position: relative;
+    z-index: 2;
+    display: block;
+    width: 61px;
+    height: 61px;
+    object-fit: contain;
+    transform: translateY(0);
+    filter: var(--brand-logo-filter) drop-shadow(0 2px 5px var(--brand-glow));
+    transition: filter .22s ease;
+    pointer-events: none;
+}
+.brand-trigger:hover .brand-logo {
+    filter: var(--brand-logo-filter) drop-shadow(0 3px 9px var(--brand-glow));
+}
+.brand-fallback {
+    color: var(--brand-accent);
+    font: 700 42px/1 Georgia, serif;
+}
+@keyframes brand-orbit { to { transform: rotate(360deg); } }
+@keyframes brand-ring-reverse {
+    0% { transform: rotate(0deg) scale(1); opacity: 1; }
+    100% { transform: rotate(-430deg) scale(.5); opacity: 0; }
+}
+@keyframes brand-ring-fade {
+    to { transform: scale(.7); opacity: 0; }
+}
+@keyframes brand-mark-rise {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    35% { transform: translateY(-7px) scale(1.04); opacity: 1; }
+    100% { transform: translateY(-115px) scale(.7); opacity: 0; }
+}
+.brand-trigger.switching .brand-orbit { animation: brand-ring-reverse .62s ease-in forwards; }
+.brand-trigger.switching .brand-ring { animation: brand-ring-fade .48s ease-in forwards; }
+.brand-trigger.switching .brand-logo,
+.brand-trigger.switching .brand-fallback { animation: brand-mark-rise .58s cubic-bezier(.65,0,.8,.25) forwards; }
+@media (prefers-reduced-motion: reduce) {
+    .brand-orbit { animation: none; }
+    .brand-trigger.switching .brand-orbit,
+    .brand-trigger.switching .brand-ring,
+    .brand-trigger.switching .brand-logo { animation-duration: .12s; }
+}
+</style>
+</head>
+<body>
+<div class="brand-wrap">
+    <button id="brandToggle" class="brand-trigger" aria-label="Switch AlgoBench theme" title="Click to switch theme">
+        <span class="brand-ring"><span class="brand-ring-inner"></span></span>
+        <span class="brand-orbit"></span>
+        <img id="brandLogo" class="brand-logo" alt="AlgoBench logo" style="display:none">
+        <span id="brandFallback" class="brand-fallback">A</span>
+    </button>
+</div>
+<script>
+(function () {
+    let args = {};
+    let fired = false;
+    const button = document.getElementById('brandToggle');
+    const logo = document.getElementById('brandLogo');
+    const fallback = document.getElementById('brandFallback');
+
+    function applyArgs(next) {
+        args = next || {};
+        const root = document.documentElement;
+        root.style.setProperty('--brand-accent', args.accent || '#B7BEC2');
+        root.style.setProperty('--brand-glow', args.glow || 'rgba(174,183,188,.18)');
+        root.style.setProperty('--brand-ring', args.ring || 'rgba(174,183,188,.48)');
+        root.style.setProperty('--brand-ring-inner', args.ringInner || 'rgba(174,183,188,.25)');
+        root.style.setProperty('--brand-ring-dashed', args.ringDashed || 'rgba(174,183,188,.30)');
+        root.style.setProperty('--brand-logo-filter', args.logoFilter || 'none');
+        if (args.logo) {
+            logo.src = args.logo;
+            logo.style.display = 'block';
+            fallback.style.display = 'none';
+        }
+    }
+
+    function sendThemeSwitch() {
+        window.parent.postMessage({
+            isStreamlitMessage: true,
+            type: 'streamlit:setComponentValue',
+            value: true,
+            dataType: 'json'
+        }, '*');
+    }
+
+    button.addEventListener('click', function () {
+        if (fired) return;
+        fired = true;
+        button.disabled = true;
+        button.classList.add('switching');
+        window.setTimeout(sendThemeSwitch, 640);
+    });
+
+    window.addEventListener('message', function (event) {
+        if (event.data && event.data.type === 'streamlit:render') {
+            applyArgs(event.data.args || {});
+        }
+    });
+
+    window.parent.postMessage({
+        isStreamlitMessage: true,
+        type: 'streamlit:componentReady',
+        apiVersion: 1
+    }, '*');
+})();
+</script>
+</body>
+</html>
+"""
+(SIDEBAR_BRAND_DIR / "index.html").write_text(SIDEBAR_BRAND_HTML, encoding="utf-8")
+sidebar_brand_component = components.declare_component(
+    "algobench_sidebar_brand",
+    path=str(SIDEBAR_BRAND_DIR)
+)
 
 if "bright_theme" not in st.session_state:
     st.session_state.bright_theme = True
@@ -52,7 +639,11 @@ if st.session_state.bright_theme:
         "shadow": "0 8px 26px rgba(50, 60, 35, .07)",
         "button_end": "#879568",
         "button_text": "#FFFFFF",
-        "button_glow": "rgba(104, 118, 75, .20)"
+        "button_glow": "rgba(104, 118, 75, .20)",
+        "logo_filter": "hue-rotate(-78deg) saturate(.78) brightness(.82)",
+        "logo_ring": "rgba(104, 118, 75, .52)",
+        "logo_ring_inner": "rgba(104, 118, 75, .27)",
+        "logo_ring_dashed": "rgba(104, 118, 75, .32)"
     }
 else:
     theme = {
@@ -73,7 +664,11 @@ else:
         "shadow": "0 10px 32px rgba(0, 0, 0, .24)",
         "button_end": "#858D92",
         "button_text": "#111315",
-        "button_glow": "rgba(190, 198, 202, .16)"
+        "button_glow": "rgba(190, 198, 202, .16)",
+        "logo_filter": "none",
+        "logo_ring": "rgba(183, 190, 194, .50)",
+        "logo_ring_inner": "rgba(183, 190, 194, .26)",
+        "logo_ring_dashed": "rgba(183, 190, 194, .31)"
     }
 
 css = r'''
@@ -98,9 +693,31 @@ css = r'''
     --header: __HEADER__;
     --shadow: __SHADOW__;
 }
-html, body, [class*="css"], .stApp, h1, h2, h3, h4, p, label, span, div, button, input {
+/* Apply the custom font to ordinary UI text, not icon glyphs. */
+html, body, .stApp, h1, h2, h3, h4, p, label, input, textarea,
+[data-testid="stMarkdownContainer"],
+[data-testid="stSidebar"] [data-testid="stWidgetLabel"] {
     font-family: "Netflix Sans", Arial, sans-serif !important;
 }
+/* Streamlit uses Material Symbols for its sidebar expand/collapse arrows.
+   Do not let the Netflix Sans override turn their glyph names into text. */
+.material-icons, .material-symbols-rounded, .material-symbols-outlined,
+[data-testid="stSidebarCollapseButton"] span,
+[data-testid="stSidebarCollapsedControl"] span,
+[data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"],
+[data-testid="stSidebarCollapsedControl"] [data-testid="stIconMaterial"] {
+    font-family: "Material Symbols Rounded", "Material Icons" !important;
+    font-weight: normal !important;
+    font-style: normal !important;
+    letter-spacing: normal !important;
+    text-transform: none !important;
+    white-space: nowrap;
+    -webkit-font-feature-settings: "liga";
+    font-feature-settings: "liga";
+}
+.ab-brand-name { color:var(--text); font-size:30px; font-weight:800; line-height:1.1; white-space:nowrap; }
+.ab-brand-tagline { color:var(--muted); font-size:9px; letter-spacing:2px; margin-top:6px; white-space:nowrap; }
+.ab-brand-hint { color:var(--muted); font-size:8px; letter-spacing:1.4px; margin-top:7px; opacity:.8; }
 .stApp {
     background:
         radial-gradient(ellipse at 52% -8%, __GLOW__ 0%, transparent 43%),
@@ -307,25 +924,131 @@ for key, value in values.items():
 st.markdown(f"""<style>{css}</style>""", unsafe_allow_html=True)
 
 
+# First-visit cinematic logo landing page.
+if "entered_dashboard" not in st.session_state:
+    st.session_state.entered_dashboard = False
+
+if not st.session_state.entered_dashboard:
+    st.markdown("""
+    <style>
+    /* Make the Streamlit host page match the dark intro canvas. */
+    html, body, #root, .stApp,
+    [data-testid="stAppViewContainer"],
+    [data-testid="stMain"],
+    [data-testid="stMainBlockContainer"],
+    [data-testid="stAppViewBlockContainer"] {
+        background: #111315 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    /* Remove Streamlit's reserved top bar and its layout gap. */
+    header, [data-testid="stHeader"], .stAppHeader,
+    [data-testid="stToolbar"], [data-testid="stDecoration"],
+    [data-testid="stStatusWidget"] {
+        display: none !important;
+        height: 0 !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    [data-testid="stAppViewContainer"] > .main,
+    [data-testid="stMain"],
+    [data-testid="stMainBlockContainer"],
+    .block-container {
+        background: #111315 !important;
+        max-width: none !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    [data-testid="stVerticalBlock"] {
+        gap: 0 !important;
+    }
+
+    iframe {
+        display: block !important;
+        border: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        vertical-align: top !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+    intro_finished = landing_component(
+        logo=LOGO_DATA_URI or "",
+        bg="#111315",
+        panel="#1C1F22",
+        text="#F0F1F2",
+        muted="#A8AFB3",
+        accent="#B7BEC2",
+        glow="rgba(174,183,188,.15)",
+        key="algobench_intro",
+        default=False,
+        height=790,
+        scrolling=False
+    )
+
+    if intro_finished:
+        st.session_state.entered_dashboard = True
+        st.session_state.animate_dashboard_reveal = True
+        st.rerun()
+
+    st.stop()
+
+if st.session_state.pop("animate_dashboard_reveal", False):
+    st.markdown("""
+    <style>
+    [data-testid="stAppViewContainer"] > .main {
+        animation: dashboard-arrive .72s cubic-bezier(.2,.7,.2,1) both;
+    }
+    @keyframes dashboard-arrive {
+        from { opacity: 0; transform: translateY(18px) scale(.992); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+
 
 # SIDEBAR
 
 with st.sidebar:
 
-    st.markdown(f"""
-    <div style="padding:0 0 24px 4px">
-        <div style="font-size:30px;font-weight:800;color:{theme["text"]}">
-            ⚡ Algo<span style="color:{theme["text"]}">Bench</span>
-        </div>
-        <div style="font-size:9px;letter-spacing:2px;color:{theme["muted"]};margin-top:5px">
-            NEXUS PERFORMANCE LAB
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+    if LOGO_DATA_URI is None:
+        st.warning("Logo_Final.svg was not found in the AlgoBench project folder.")
 
-    st.markdown('<div class="ab-divider"></div>', unsafe_allow_html=True)
+    brand_left, brand_right = st.columns([1.25, 3.8], vertical_alignment="center", gap="small")
+    with brand_left:
+        theme_clicked = sidebar_brand_component(
+            logo=LOGO_DATA_URI or "",
+            accent=theme["accent"],
+            glow=theme["button_glow"],
+            ring=theme["logo_ring"],
+            ringInner=theme["logo_ring_inner"],
+            ringDashed=theme["logo_ring_dashed"],
+            logoFilter=theme["logo_filter"],
+            key=f"sidebar_theme_mark_{'bright' if st.session_state.bright_theme else 'dark'}",
+            default=False,
+            height=90,
+            scrolling=False
+        )
 
-    st.toggle("Bright theme", key="bright_theme")
+    with brand_right:
+        st.markdown(f"""
+        <div style="padding:0 0 4px 0">
+            <div class="ab-brand-name">AlgoBench</div>
+            <div class="ab-brand-tagline">NEXUS PERFORMANCE LAB</div>
+            <div class="ab-brand-hint">CLICK THE MARK TO SWITCH THEME</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    if theme_clicked:
+        st.session_state.bright_theme = not st.session_state.bright_theme
+        st.rerun()
 
     st.markdown('<div class="ab-divider"></div>', unsafe_allow_html=True)
 
@@ -688,7 +1411,7 @@ elif page == "Run Benchmark":
             )
 
     if st.button(
-        "⚡ Prepare Benchmark Configuration",
+        "Prepare Benchmark Configuration",
         use_container_width=True
     ):
 
