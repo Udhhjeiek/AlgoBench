@@ -1088,8 +1088,22 @@ p, label, [data-testid="stCaptionContainer"] { color: var(--muted); }
     font-weight: 700;
 }
 .ab-hero {
+    --tilt-x: 0deg;
+    --tilt-y: 0deg;
+    --lift-y: 0px;
+    --card-scale: 1;
+    --pointer-x: 50%;
+    --pointer-y: 50%;
     position: relative;
     overflow: hidden;
+    transform:
+        perspective(1250px)
+        rotateX(var(--tilt-y))
+        rotateY(var(--tilt-x))
+        translateY(var(--lift-y))
+        scale(var(--card-scale));
+    transform-style: preserve-3d;
+    transform-origin: center center;
     background:
         radial-gradient(circle at 78% 22%, __HERO_GLOW__, transparent 33%),
         linear-gradient(120deg, var(--panel-raised), var(--panel));
@@ -1098,6 +1112,67 @@ p, label, [data-testid="stCaptionContainer"] { color: var(--muted); }
     padding: 42px;
     margin: 15px 0 28px 0;
     box-shadow: var(--shadow);
+    transition:
+        transform 520ms cubic-bezier(.2,.75,.25,1),
+        box-shadow 420ms cubic-bezier(.2,.75,.25,1),
+        border-color 300ms ease;
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+/* A soft light sheen follows the pointer across the card surface. */
+.ab-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background:
+        radial-gradient(
+            420px circle at var(--pointer-x) var(--pointer-y),
+            rgba(255,255,255,.19),
+            rgba(255,255,255,.07) 28%,
+            transparent 68%
+        );
+    transition: opacity 220ms ease;
+}
+
+/* During pointer movement, the tilt follows the cursor with minimal lag. */
+.ab-hero.is-tilting {
+    transition:
+        transform 80ms linear,
+        box-shadow 120ms ease,
+        border-color 180ms ease;
+    border-color: var(--accent);
+}
+
+.ab-hero.is-tilting::before {
+    opacity: 1;
+}
+
+/* Keep the existing subtle technical grid above the sheen. */
+.ab-hero::after {
+    z-index: 2;
+}
+
+/* Lift the hero's text and badge slightly forward to create layered depth. */
+.ab-hero > * {
+    position: relative;
+    z-index: 3;
+    transform: translateZ(24px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ab-hero,
+    .ab-hero.is-tilting {
+        transition: none;
+        transform: none;
+    }
+    .ab-hero::before {
+        display: none;
+    }
 }
 .ab-hero:after {
     content: "";
@@ -1497,17 +1572,12 @@ with st.sidebar:
 
 # TOP BAR
 
-left, right = st.columns([5, 1])
-
-with left:
-    st.markdown(
-        '<div class="ab-label">ALGORITHM INTELLIGENCE / PERFORMANCE ANALYTICS</div>',
-        unsafe_allow_html=True
-    )
+_, right = st.columns([5, 1])
 
 with right:
     st.markdown(
-        '<div style="text-align:right"><span class="ab-status">● READY</span></div>',
+        '<div style="text-align:right; padding-top:5px;">'
+        '<span class="ab-status">● READY</span></div>',
         unsafe_allow_html=True
     )
 
@@ -1534,6 +1604,120 @@ if page == "Overview":
         <span class="ab-status">● PLATFORM INITIALIZED</span>
     </div>
     """, unsafe_allow_html=True)
+
+    # Cursor-tracking 3D effect for the Overview hero only.
+    # This small bridge attaches pointer listeners to the rendered .ab-hero
+    # element in the Streamlit page; no other cards or dashboard sections change.
+    components.html(
+        """
+        <script>
+        (() => {
+            let attempts = 0;
+            const maxAttempts = 30;
+
+            function attachCometInteraction() {
+                let hostDocument;
+
+                try {
+                    hostDocument = window.parent.document;
+                } catch (error) {
+                    return;
+                }
+
+                const card = hostDocument.querySelector(".ab-hero");
+
+                if (!card) {
+                    attempts += 1;
+                    if (attempts < maxAttempts) {
+                        window.setTimeout(attachCometInteraction, 120);
+                    }
+                    return;
+                }
+
+                if (card.dataset.cometPointerReady === "true") return;
+                card.dataset.cometPointerReady = "true";
+
+                const hostWindow = window.parent;
+                const reducedMotion = hostWindow.matchMedia(
+                    "(prefers-reduced-motion: reduce)"
+                ).matches;
+                const finePointer = hostWindow.matchMedia(
+                    "(hover: hover) and (pointer: fine)"
+                ).matches;
+
+                if (reducedMotion || !finePointer) return;
+
+                function handlePointerMove(event) {
+                    const rect = card.getBoundingClientRect();
+                    if (!rect.width || !rect.height) return;
+
+                    const localX = Math.max(
+                        0, Math.min(rect.width, event.clientX - rect.left)
+                    );
+                    const localY = Math.max(
+                        0, Math.min(rect.height, event.clientY - rect.top)
+                    );
+
+                    const normalizedX = (localX / rect.width - 0.5) * 2;
+                    const normalizedY = (localY / rect.height - 0.5) * 2;
+
+                    // The face turns toward the pointer, with restrained angles.
+                    const rotateY = normalizedX * 10;
+                    const rotateX = normalizedY * -8;
+
+                    card.style.setProperty("--tilt-x", rotateY.toFixed(2) + "deg");
+                    card.style.setProperty("--tilt-y", rotateX.toFixed(2) + "deg");
+                    card.style.setProperty("--lift-y", "-7px");
+                    card.style.setProperty("--card-scale", "1.008");
+                    card.style.setProperty(
+                        "--pointer-x",
+                        (localX / rect.width * 100).toFixed(2) + "%"
+                    );
+                    card.style.setProperty(
+                        "--pointer-y",
+                        (localY / rect.height * 100).toFixed(2) + "%"
+                    );
+
+                    // Offset the shadow opposite the cursor to strengthen depth.
+                    const shadowX = (-normalizedX * 19).toFixed(1);
+                    const shadowY = (23 - normalizedY * 13).toFixed(1);
+                    card.style.boxShadow =
+                        shadowX + "px " + shadowY +
+                        "px 48px rgba(0,0,0,.19), var(--shadow)";
+
+                    card.classList.add("is-tilting");
+                }
+
+                function resetCard() {
+                    card.classList.remove("is-tilting");
+                    card.style.setProperty("--tilt-x", "0deg");
+                    card.style.setProperty("--tilt-y", "0deg");
+                    card.style.setProperty("--lift-y", "0px");
+                    card.style.setProperty("--card-scale", "1");
+                    card.style.setProperty("--pointer-x", "50%");
+                    card.style.setProperty("--pointer-y", "50%");
+                    card.style.boxShadow = "";
+                }
+
+                card.addEventListener("pointermove", handlePointerMove, {
+                    passive: true
+                });
+                card.addEventListener("pointerleave", resetCard, {
+                    passive: true
+                });
+                card.addEventListener("pointercancel", resetCard, {
+                    passive: true
+                });
+            }
+
+            // Give Streamlit time to finish inserting the hero markup.
+            window.setTimeout(attachCometInteraction, 80);
+        })();
+        </script>
+        """,
+        height=0,
+        scrolling=False
+    )
 
     st.markdown("### Platform Overview")
 
