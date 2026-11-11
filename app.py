@@ -1076,6 +1076,113 @@ p, label, [data-testid="stCaptionContainer"] { color: var(--muted); }
     font-weight: 650;
     margin-bottom: 8px;
 }
+
+/* Click-triggered PointerHighlight treatment for the five domain headings. */
+.ab-domain-trigger {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 4px 9px 5px 0;
+    margin: -4px 0 4px -1px;
+    border: 0;
+    border-radius: 5px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 18px;
+    font-weight: 650;
+    line-height: 1.3;
+    text-align: left;
+    cursor: pointer;
+    isolation: isolate;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ab-domain-trigger::before {
+    content: "";
+    position: absolute;
+    inset: -3px -8px;
+    z-index: -1;
+    border: 1.35px solid var(--accent);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    clip-path: inset(0 100% 0 0 round 6px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ab-domain-trigger.is-pointer-active::before {
+    opacity: 1;
+    animation: ab-pointer-outline-draw .62s cubic-bezier(.16, 1, .3, 1) forwards;
+}
+
+.ab-domain-cursor {
+    position: absolute;
+    z-index: 2;
+    left: 0;
+    top: 50%;
+    width: 19px;
+    height: 24px;
+    opacity: 0;
+    transform: translate(-48%, -12%) rotate(-9deg);
+    transform-origin: 15% 10%;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .24));
+}
+
+.ab-domain-trigger.is-pointer-active .ab-domain-cursor {
+    animation: ab-pointer-cursor-sweep .78s cubic-bezier(.22, .78, .25, 1) forwards;
+}
+
+.ab-domain-trigger:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 5px;
+}
+
+@keyframes ab-pointer-outline-draw {
+    0% {
+        clip-path: inset(0 100% 0 0 round 6px);
+        opacity: .35;
+    }
+    70% {
+        clip-path: inset(0 0 0 0 round 6px);
+        opacity: 1;
+    }
+    100% {
+        clip-path: inset(0 0 0 0 round 6px);
+        opacity: 1;
+    }
+}
+
+@keyframes ab-pointer-cursor-sweep {
+    0% {
+        left: 0;
+        opacity: 0;
+        transform: translate(-48%, -12%) rotate(-9deg) scale(.82);
+    }
+    12% { opacity: 1; }
+    76% {
+        opacity: 1;
+        transform: translate(-48%, -12%) rotate(-9deg) scale(1);
+    }
+    100% {
+        left: calc(100% - 2px);
+        opacity: 0;
+        transform: translate(-48%, -12%) rotate(-9deg) scale(.94);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ab-domain-trigger.is-pointer-active::before {
+        animation: none;
+        clip-path: inset(0 0 0 0 round 6px);
+    }
+    .ab-domain-trigger.is-pointer-active .ab-domain-cursor {
+        animation: none;
+        opacity: 0;
+    }
+}
 .ab-description {
     color: var(--muted);
     font-size: 13px;
@@ -1576,8 +1683,7 @@ _, right = st.columns([5, 1])
 
 with right:
     st.markdown(
-        '<div style="text-align:right; padding-top:5px;">'
-        '<span class="ab-status">● READY</span></div>',
+        '<div style="text-align:right"><span class="ab-status">● READY</span></div>',
         unsafe_allow_html=True
     )
 
@@ -1770,12 +1876,85 @@ if page == "Overview":
             <div class="ab-card">
                 <div class="ab-label">DOMAIN {number}</div>
                 <div class="ab-icon">{icon}</div>
-                <div class="ab-title">{title}</div>
+                <div class="ab-title">
+                    <button type="button"
+                            class="ab-domain-trigger"
+                            aria-label="Highlight {title} domain"
+                            title="Click to highlight {title}">
+                        <span>{title}</span>
+                        <svg class="ab-domain-cursor"
+                             viewBox="0 0 24 30"
+                             aria-hidden="true"
+                             xmlns="http://www.w3.org/2000/svg">
+                            <path d="M2 1.5L2.5 24L8.1 18.3L12.4 27.8L16.2 26L11.8 16.8L20.3 16.1Z"
+                                  fill="var(--accent)"
+                                  stroke="var(--panel)"
+                                  stroke-width="1.25"
+                                  stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                </div>
                 <div class="ab-description">{desc}</div>
                 <br>
                 <div class="ab-mono">{complexity}</div>
             </div>
             """, unsafe_allow_html=True)
+
+    # Attach the click-to-highlight animation to the five domain headings.
+    # Only the clicked heading is highlighted; clicking another moves the
+    # selection to that heading. The script is safe across Streamlit reruns.
+    components.html(
+        """
+        <script>
+        (() => {
+            let attempts = 0;
+            const maxAttempts = 30;
+
+            function attachPointerHighlights() {
+                let hostDocument;
+
+                try {
+                    hostDocument = window.parent.document;
+                } catch (error) {
+                    return;
+                }
+
+                const headings = Array.from(
+                    hostDocument.querySelectorAll(".ab-domain-trigger")
+                );
+
+                if (!headings.length) {
+                    attempts += 1;
+                    if (attempts < maxAttempts) {
+                        window.setTimeout(attachPointerHighlights, 120);
+                    }
+                    return;
+                }
+
+                headings.forEach((heading) => {
+                    if (heading.dataset.pointerHighlightReady === "true") return;
+                    heading.dataset.pointerHighlightReady = "true";
+
+                    heading.addEventListener("click", () => {
+                        headings.forEach((item) => {
+                            item.classList.remove("is-pointer-active");
+                        });
+
+                        // Force a fresh animation even when the same heading
+                        // is clicked repeatedly.
+                        void heading.offsetWidth;
+                        heading.classList.add("is-pointer-active");
+                    });
+                });
+            }
+
+            attachPointerHighlights();
+        })();
+        </script>
+        """,
+        height=0,
+        scrolling=False
+    )
 
     st.markdown("### Analysis Pipeline")
 
