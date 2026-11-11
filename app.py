@@ -1,4 +1,3 @@
-
 import streamlit as st
 import streamlit.components.v1 as components
 import tempfile
@@ -640,6 +639,7 @@ if st.session_state.bright_theme:
         "button_end": "#879568",
         "button_text": "#FFFFFF",
         "button_glow": "rgba(104, 118, 75, .20)",
+        "arrow_color": "#000000",
         "logo_filter": "hue-rotate(-78deg) saturate(.78) brightness(.82)",
         "logo_ring": "rgba(104, 118, 75, .52)",
         "logo_ring_inner": "rgba(104, 118, 75, .27)",
@@ -665,6 +665,7 @@ else:
         "button_end": "#858D92",
         "button_text": "#111315",
         "button_glow": "rgba(190, 198, 202, .16)",
+        "arrow_color": "#D0D5D8",
         "logo_filter": "none",
         "logo_ring": "rgba(183, 190, 194, .50)",
         "logo_ring_inner": "rgba(183, 190, 194, .26)",
@@ -703,9 +704,7 @@ html, body, .stApp, h1, h2, h3, h4, p, label, input, textarea,
    Do not let the Netflix Sans override turn their glyph names into text. */
 .material-icons, .material-symbols-rounded, .material-symbols-outlined,
 [data-testid="stSidebarCollapseButton"] span,
-[data-testid="stSidebarCollapsedControl"] span,
-[data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"],
-[data-testid="stSidebarCollapsedControl"] [data-testid="stIconMaterial"] {
+[data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"] {
     font-family: "Material Symbols Rounded", "Material Icons" !important;
     font-weight: normal !important;
     font-style: normal !important;
@@ -714,6 +713,39 @@ html, body, .stApp, h1, h2, h3, h4, p, label, input, textarea,
     white-space: nowrap;
     -webkit-font-feature-settings: "liga";
     font-feature-settings: "liga";
+}
+
+/* High-contrast collapse arrow INSIDE the open sidebar (both themes). */
+[data-testid="stSidebarCollapseButton"],
+[data-testid="stSidebarCollapseButton"] button {
+    color: var(--accent) !important;
+    opacity: 1 !important;
+    background: var(--accent-soft) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 9px !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-testid="stSidebarCollapseButton"] span,
+[data-testid="stSidebarCollapseButton"] svg,
+[data-testid="stSidebarCollapseButton"] [data-testid="stIconMaterial"] {
+    color: var(--accent) !important;
+    fill: currentColor !important;
+    opacity: 1 !important;
+    font-size: 22px !important;
+    font-weight: 700 !important;
+    filter: none !important;
+}
+
+[data-testid="stSidebarCollapseButton"]:hover,
+[data-testid="stSidebarCollapseButton"] button:hover {
+    background: var(--panel-raised) !important;
+    border-color: var(--accent) !important;
+}
+
+[data-testid="stSidebarCollapseButton"] button:focus-visible {
+    outline: 2px solid var(--accent) !important;
+    outline-offset: 2px !important;
 }
 .ab-brand-name { color:var(--text); font-size:30px; font-weight:800; line-height:1.1; white-space:nowrap; }
 .ab-brand-tagline { color:var(--muted); font-size:9px; letter-spacing:2px; margin-top:6px; white-space:nowrap; }
@@ -893,8 +925,109 @@ div[role="radiogroup"] { gap: 8px; }
 }
 [data-testid="stAlert"] { border-radius: 9px; }
 [data-testid="stToggle"] label { color: var(--text) !important; }
+
+/* ------------------------------------------------------------------
+   Sidebar EXPAND arrow (shown when the sidebar is closed).
+   Works with both Streamlit naming schemes:
+     - [data-testid="stSidebarCollapsedControl"] (wrapper) > button
+     - [data-testid="stExpandSidebarButton"]
+   The native icon is hidden and a single high-contrast "»" is drawn
+   on ONE element only, so it can never be doubled or invisible.
+------------------------------------------------------------------- */
+
+/* 1) The fixed, boxed container pinned to the top-left corner. */
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="stExpandSidebarButton"]:not([data-testid="stSidebarCollapsedControl"] *) {
+    position: fixed !important;
+    top: 14px !important;
+    left: 14px !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: var(--accent-soft) !important;
+    border: 2px solid __ARROW_COLOR__ !important;
+    border-radius: 10px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    box-shadow: var(--shadow) !important;
+}
+
+/* 2) The clickable button itself (transparent, fills the box). */
+[data-testid="stSidebarCollapsedControl"] button,
+[data-testid="stExpandSidebarButton"],
+button[data-testid="stSidebarCollapsedControl"] {
+    position: relative !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    color: __ARROW_COLOR__ !important;
+    background: transparent;
+    border: 0;
+    border-radius: 9px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    box-shadow: none;
+    cursor: pointer !important;
+    font-size: 0 !important;
+    line-height: 0 !important;
+}
+
+/* 3) Hide Streamlit's native icon so only our arrow is drawn. */
+[data-testid="stSidebarCollapsedControl"] button *,
+[data-testid="stExpandSidebarButton"] *,
+button[data-testid="stSidebarCollapsedControl"] * {
+    display: none !important;
+}
+
+/* 4) Draw ONE clearly visible double arrow. */
+[data-testid="stSidebarCollapsedControl"] button::after,
+[data-testid="stExpandSidebarButton"]::after,
+button[data-testid="stSidebarCollapsedControl"]::after {
+    content: "\00BB" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 3px 4px 0 !important;
+    color: __ARROW_COLOR__ !important;
+    font-family: Arial, Helvetica, sans-serif !important;
+    font-size: 30px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+    letter-spacing: -4px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: none !important;
+    z-index: 10 !important;
+}
+
+[data-testid="stSidebarCollapsedControl"]:hover,
+[data-testid="stExpandSidebarButton"]:hover {
+    background: var(--panel-raised) !important;
+    transform: none !important;
+}
+
+[data-testid="stSidebarCollapsedControl"] button:focus-visible,
+[data-testid="stExpandSidebarButton"]:focus-visible {
+    outline: 2px solid __ARROW_COLOR__ !important;
+    outline-offset: 2px !important;
+}
+
 footer, #MainMenu { visibility: hidden; }
-</style>
 '''
 
 values = {
@@ -916,7 +1049,8 @@ values = {
     "__SHADOW__": theme["shadow"],
     "__BUTTON_END__": theme["button_end"],
     "__BUTTON_TEXT__": theme["button_text"],
-    "__BUTTON_GLOW__": theme["button_glow"]
+    "__BUTTON_GLOW__": theme["button_glow"],
+    "__ARROW_COLOR__": theme["arrow_color"]
 }
 for key, value in values.items():
     css = css.replace(key, value)
@@ -995,6 +1129,7 @@ if not st.session_state.entered_dashboard:
     if intro_finished:
         st.session_state.entered_dashboard = True
         st.session_state.animate_dashboard_reveal = True
+        st.session_state.force_sidebar_expand = True
         st.rerun()
 
     st.stop()
@@ -1012,8 +1147,9 @@ if st.session_state.pop("animate_dashboard_reveal", False):
     </style>
     """, unsafe_allow_html=True)
 
-
-
+    # Streamlit can retain a previously collapsed sidebar across reruns.
+    # Expand it once when arriving from the cinematic landing screen.
+    
 # SIDEBAR
 
 with st.sidebar:
@@ -1210,9 +1346,6 @@ if page == "Overview":
             </div>
         </div>
         """, unsafe_allow_html=True)
-
-
-# RUN BENCHMARK PAGE
 
 
 # RUN BENCHMARK PAGE
@@ -1564,3 +1697,60 @@ text-align:center;color:{theme["muted"]};font-size:11px;letter-spacing:1px">
     ALGOBENCH NEXUS · BUILT FOR PERFORMANCE ENGINEERING
 </div>
 """, unsafe_allow_html=True)
+
+# Open the sidebar automatically right after the landing screen.
+if st.session_state.pop("force_sidebar_expand", False):
+
+    components.html("""
+    <script>
+    (() => {
+        let attempts = 0;
+        const maxAttempts = 50;
+
+        // Different Streamlit versions use different test ids for the
+        // "open sidebar" control, so try all of them.
+        const selectors = [
+            '[data-testid="stExpandSidebarButton"]',
+            '[data-testid="stSidebarCollapsedControl"] button',
+            '[data-testid="stSidebarCollapsedControl"]'
+        ];
+
+        function findControl(doc) {
+            for (const selector of selectors) {
+                const el = doc.querySelector(selector);
+                if (el) return el;
+            }
+            return null;
+        }
+
+        function expandSidebar() {
+            attempts++;
+            try {
+                const doc = window.parent.document;
+                const control = findControl(doc);
+
+                if (control) {
+                    const button = control.tagName === "BUTTON"
+                        ? control
+                        : (control.querySelector("button") || control);
+                    button.click();
+                } else {
+                    // No "open" control: stop only if the sidebar is really open.
+                    const sidebar = doc.querySelector('[data-testid="stSidebar"]');
+                    if (sidebar && sidebar.getAttribute("aria-expanded") !== "false") {
+                        return;
+                    }
+                }
+            } catch (error) {
+                // Retry while Streamlit completes the dashboard render.
+            }
+
+            if (attempts < maxAttempts) {
+                window.setTimeout(expandSidebar, 400);
+            }
+        }
+
+        window.setTimeout(expandSidebar, 250);
+    })();
+    </script>
+    """, height=1)
