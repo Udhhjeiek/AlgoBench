@@ -614,8 +614,249 @@ sidebar_brand_component = components.declare_component(
     path=str(SIDEBAR_BRAND_DIR)
 )
 
+
+# Rolling-text navigation component used in the sidebar (TextRoll effect).
+# Each letter slides up and is replaced by the same letter coming from below,
+# staggered outwards from the centre of the word.
+SIDEBAR_NAV_DIR = Path(tempfile.gettempdir()) / "algobench_sidebar_nav"
+SIDEBAR_NAV_DIR.mkdir(exist_ok=True)
+SIDEBAR_NAV_HTML = r"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+@font-face {
+    font-family: "Netflix Sans";
+    src: url(data:font/ttf;base64,NAV_FONT_DATA) format("truetype");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+:root {
+    --nav-text: #202319;
+    --nav-muted: #6D735F;
+    --nav-accent: #68764B;
+    --fs: 30px;
+}
+* { box-sizing: border-box; }
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    background: transparent;
+    overflow: hidden;
+    font-family: "Netflix Sans", Arial, sans-serif;
+}
+#wrap { width: 100%; padding: 4px 0 6px; }
+ul#navList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+li {
+    position: relative;
+    cursor: pointer;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+.roll {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    font-size: var(--fs);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    line-height: 1.0;
+    padding: 0.05em 0.02em;
+    white-space: pre;
+    /* faux-bold so the single Regular weight of the font reads heavy */
+    -webkit-text-stroke: 0.045em currentColor;
+}
+.layer { display: block; white-space: pre; }
+.layer.bottom { position: absolute; left: 0; right: 0; top: 0.05em; text-align: center; }
+.ch {
+    display: inline-block;
+    transition: transform .38s ease-in-out;
+    will-change: transform;
+}
+.layer.top { color: var(--nav-muted); }
+.layer.bottom { color: var(--nav-text); }
+.layer.top .ch { transform: translateY(0); }
+.layer.bottom .ch { transform: translateY(105%); }
+li:hover .layer.top .ch,
+li:focus-visible .layer.top .ch { transform: translateY(-105%); }
+li:hover .layer.bottom .ch,
+li:focus-visible .layer.bottom .ch { transform: translateY(0); }
+
+/* Currently selected page */
+li.active .layer.top,
+li.active .layer.bottom { color: var(--nav-accent); }
+li.active .layer.top { color: var(--nav-accent); }
+
+@media (prefers-reduced-motion: reduce) {
+    .ch { transition-duration: .01s; }
+}
+</style>
+</head>
+<body>
+<div id="wrap"><ul id="navList" role="navigation"></ul></div>
+<script>
+(function () {
+    const STAGGER = 0.035;
+    const list = document.getElementById('navList');
+    const wrap = document.getElementById('wrap');
+    let items = [];
+    let active = '';
+    let builtKey = '';
+
+    function makeLayer(cls, text) {
+        const layer = document.createElement('span');
+        layer.className = 'layer ' + cls;
+        const chars = Array.from(text);
+        const mid = (chars.length - 1) / 2;
+        chars.forEach(function (ch, i) {
+            const s = document.createElement('span');
+            s.className = 'ch';
+            s.style.transitionDelay = (STAGGER * Math.abs(i - mid)).toFixed(3) + 's';
+            s.textContent = ch === ' ' ? '\u00a0' : ch;
+            layer.appendChild(s);
+        });
+        return layer;
+    }
+
+    function choose(name) {
+        window.parent.postMessage({
+            isStreamlitMessage: true,
+            type: 'streamlit:setComponentValue',
+            value: name,
+            dataType: 'json'
+        }, '*');
+    }
+
+    function build() {
+        list.innerHTML = '';
+        items.forEach(function (name) {
+            const li = document.createElement('li');
+            li.dataset.name = name;
+            li.tabIndex = 0;
+            li.setAttribute('role', 'button');
+            li.setAttribute('aria-label', name);
+
+            const roll = document.createElement('span');
+            roll.className = 'roll';
+            roll.appendChild(makeLayer('top', name));
+            roll.appendChild(makeLayer('bottom', name));
+            li.appendChild(roll);
+
+            li.addEventListener('click', function () { choose(name); });
+            li.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    choose(name);
+                }
+            });
+            list.appendChild(li);
+        });
+    }
+
+    function markActive() {
+        list.querySelectorAll('li').forEach(function (li) {
+            li.classList.toggle('active', li.dataset.name === active);
+        });
+    }
+
+    // Shrink the type just enough that the longest label fits the sidebar.
+    function fit() {
+        const avail = wrap.clientWidth - 8;
+        let size = 30;
+        document.documentElement.style.setProperty('--fs', size + 'px');
+        let widest = 0;
+        list.querySelectorAll('.roll').forEach(function (r) {
+            widest = Math.max(widest, r.scrollWidth);
+        });
+        if (widest > avail && avail > 0) {
+            size = Math.max(16, Math.floor((size * avail / widest) * 10) / 10);
+            document.documentElement.style.setProperty('--fs', size + 'px');
+        }
+        sendHeight();
+    }
+
+    function sendHeight() {
+        const h = Math.ceil(wrap.getBoundingClientRect().height) + 4;
+        window.parent.postMessage({
+            isStreamlitMessage: true,
+            type: 'streamlit:setFrameHeight',
+            height: h
+        }, '*');
+    }
+
+    function applyArgs(args) {
+        args = args || {};
+        const root = document.documentElement;
+        root.style.setProperty('--nav-text', args.text || '#202319');
+        root.style.setProperty('--nav-muted', args.muted || '#6D735F');
+        root.style.setProperty('--nav-accent', args.accent || '#68764B');
+
+        items = args.items || [];
+        active = args.active || '';
+
+        const key = items.join('|');
+        if (key !== builtKey) {
+            builtKey = key;
+            build();
+        }
+        markActive();
+        fit();
+    }
+
+    window.addEventListener('message', function (event) {
+        if (event.data && event.data.type === 'streamlit:render') {
+            applyArgs(event.data.args || {});
+        }
+    });
+    window.addEventListener('resize', fit);
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(fit);
+    }
+
+    window.parent.postMessage({
+        isStreamlitMessage: true,
+        type: 'streamlit:componentReady',
+        apiVersion: 1
+    }, '*');
+})();
+</script>
+</body>
+</html>
+"""
+SIDEBAR_NAV_HTML = SIDEBAR_NAV_HTML.replace("NAV_FONT_DATA", FONT_BASE64)
+(SIDEBAR_NAV_DIR / "index.html").write_text(SIDEBAR_NAV_HTML, encoding="utf-8")
+sidebar_nav_component = components.declare_component(
+    "algobench_sidebar_nav",
+    path=str(SIDEBAR_NAV_DIR)
+)
+
+NAV_ITEMS = [
+    "Overview",
+    "Run Benchmark",
+    "Compare Results",
+    "Profiler",
+    "Algorithm Library",
+    "History"
+]
+
 if "bright_theme" not in st.session_state:
     st.session_state.bright_theme = True
+
+if "current_page" not in st.session_state:
+    st.session_state.current_page = NAV_ITEMS[0]
 
 
 # Theme palette
@@ -766,6 +1007,11 @@ html, body, .stApp, h1, h2, h3, h4, p, label, input, textarea,
 [data-testid="stSidebar"] > div:first-child {
     padding-top: 1.8rem;
 }
+/* Keep the rolling-text navigation iframe transparent on the sidebar. */
+[data-testid="stSidebar"] iframe {
+    background: transparent !important;
+    color-scheme: normal;
+}
 .block-container {
     max-width: 1500px;
     padding-top: 2.1rem;
@@ -808,7 +1054,22 @@ p, label, [data-testid="stCaptionContainer"] { color: var(--muted); }
     border-color: var(--accent);
     transform: translateY(-2px);
 }
-.ab-icon { font-size: 25px; margin-bottom: 14px; }
+.ab-icon {
+    font-size: 25px;
+    margin-bottom: 14px;
+    color: var(--accent);
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ab-icon svg {
+    width: 34px;
+    height: 34px;
+    display: block;
+}
 .ab-title {
     color: var(--text);
     font-size: 18px;
@@ -1190,18 +1451,27 @@ with st.sidebar:
 
     st.markdown('<div class="ab-label">WORKSPACE</div>', unsafe_allow_html=True)
 
-    page = st.radio(
-        "Navigation",
-        [
-            "Overview",
-            "Run Benchmark",
-            "Compare Results",
-            "Profiler",
-            "Algorithm Library",
-            "History"
-        ],
-        label_visibility="collapsed"
+    # Rolling-text navigation (replaces the old st.radio).
+    nav_choice = sidebar_nav_component(
+        items=NAV_ITEMS,
+        active=st.session_state.current_page,
+        text=theme["text"],
+        muted=theme["muted"],
+        accent=theme["accent"],
+        key="sidebar_nav_roll",
+        default=None,
+        scrolling=False
     )
+
+    if (
+        nav_choice
+        and nav_choice in NAV_ITEMS
+        and nav_choice != st.session_state.current_page
+    ):
+        st.session_state.current_page = nav_choice
+        st.rerun()
+
+    page = st.session_state.current_page
 
     st.markdown('<div class="ab-divider"></div>', unsafe_allow_html=True)
 
@@ -1278,17 +1548,33 @@ if page == "Overview":
     st.markdown("### Explore Algorithm Domains")
     st.caption("Select a domain to configure and analyze its algorithms.")
 
+    
+    sorting_svg = """
+    <svg xmlns="http://www.w3.org/2000/svg"
+        width="34" height="34" viewBox="0 0 40 40"
+        fill="none" stroke="currentColor"
+        stroke-width="2.2" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M5 34H36"/>
+        <rect x="8" y="23" width="6" height="11" rx="1.5"/>
+        <rect x="18" y="16" width="6" height="18" rx="1.5"/>
+        <rect x="28" y="8" width="6" height="26" rx="1.5"/>
+        <path d="M8 15L17 10L24 12L34 4"/>
+        <path d="M27 4H34V11"/>
+    </svg>
+    """
+
     categories = [
-        ("01","↕️","Sorting","Quick, Merge, Heap and Insertion Sort",
-         "O(n log n)"),
-        ("02","⌕","Searching","Linear, Binary and Hash Table Lookup",
-         "O(log n)"),
-        ("03","◈","Graph Algorithms","Dijkstra, Bellman-Ford and BFS",
-         "O(V + E)"),
-        ("04","▦","Dynamic Programming","LCS and 0/1 Knapsack",
-         "DP"),
-        ("05","▧","Matrix Algorithms","Standard and Strassen Multiplication",
-         "O(n³)")
+        ("01", sorting_svg, "Sorting",
+        "Quick, Merge, Heap and Insertion Sort", "O(n log n)"),
+        ("02", "⌕", "Searching",
+        "Linear, Binary and Hash Table Lookup", "O(log n)"),
+        ("03", "◈", "Graph Algorithms",
+        "Dijkstra, Bellman-Ford and BFS", "O(V + E)"),
+        ("04", "▦", "Dynamic Programming",
+        "LCS and 0/1 Knapsack", "DP"),
+        ("05", "▧", "Matrix Algorithms",
+        "Standard and Strassen Multiplication", "O(n³)")
     ]
 
     cols = st.columns(3)
