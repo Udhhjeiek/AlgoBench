@@ -10,7 +10,7 @@ from visualization.dashboard_charts import (
 
 st.set_page_config(
     page_title="AlgoBench | Performance Lab",
-    page_icon="⚡",
+    page_icon="💫",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -732,6 +732,10 @@ li.active .layer.top { color: var(--nav-accent); }
     }
 
     function choose(name) {
+        if (!name || name === active) return;
+
+        // Send the page selection immediately. Streamlit handles the rerun;
+        // the new page receives a short CSS fade-in from the Python side.
         window.parent.postMessage({
             isStreamlitMessage: true,
             type: 'streamlit:setComponentValue',
@@ -1343,6 +1347,14 @@ div.stButton > button:hover {
     color: __BUTTON_TEXT__;
     box-shadow: 0 5px 22px __BUTTON_GLOW__;
 }
+
+/* Run Benchmark: keep this button label black in both bright and dark themes. */
+.st-key-prepare_benchmark_configuration button,
+.st-key-prepare_benchmark_configuration button p,
+.st-key-prepare_benchmark_configuration button:hover,
+.st-key-prepare_benchmark_configuration button:hover p {
+    color: #000000 !important;
+}
 div[data-baseweb="select"] > div,
 [data-baseweb="input"] > div {
     background: var(--input);
@@ -1468,6 +1480,29 @@ button[data-testid="stSidebarCollapsedControl"]::after {
 [data-testid="stExpandSidebarButton"]:focus-visible {
     outline: 2px solid __ARROW_COLOR__ !important;
     outline-offset: 2px !important;
+}
+
+
+/* Gentle page-entry transition: fast navigation with a soft visual settle. */
+@keyframes algobench-page-enter {
+    0% {
+        opacity: .18;
+        transform: translate3d(0, 7px, 0);
+    }
+    65% {
+        opacity: .88;
+        transform: translate3d(0, 1px, 0);
+    }
+    100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-testid="stAppViewContainer"] > .main {
+        animation: none !important;
+    }
 }
 
 footer, #MainMenu { visibility: hidden; }
@@ -1627,6 +1662,7 @@ with st.sidebar:
 
     if theme_clicked:
         st.session_state.bright_theme = not st.session_state.bright_theme
+        st.session_state.page_transition_enter = True
         st.rerun()
 
     st.markdown('<div class="ab-divider"></div>', unsafe_allow_html=True)
@@ -1651,6 +1687,7 @@ with st.sidebar:
         and nav_choice != st.session_state.current_page
     ):
         st.session_state.current_page = nav_choice
+        st.session_state.page_transition_enter = True
         st.rerun()
 
     page = st.session_state.current_page
@@ -1675,6 +1712,22 @@ with st.sidebar:
         VERSION 1.0.0
     </div>
     """, unsafe_allow_html=True)
+
+
+# A lightweight 220 ms fade-in on page/theme changes.
+# No JavaScript timers or hidden-state manipulation: navigation stays immediate.
+if st.session_state.pop("page_transition_enter", False):
+    st.markdown(
+        """
+        <style>
+        [data-testid="stAppViewContainer"] > .main {
+            animation: algobench-page-enter 300ms cubic-bezier(.22, 1, .36, 1) both !important;
+            will-change: opacity, transform;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
 
 
 # TOP BAR
@@ -2194,7 +2247,8 @@ elif page == "Run Benchmark":
 
     if st.button(
         "Prepare Benchmark Configuration",
-        use_container_width=True
+        use_container_width=True,
+        key="prepare_benchmark_configuration"
     ):
 
         if not algorithms:
@@ -2346,6 +2400,7 @@ text-align:center;color:{theme["muted"]};font-size:11px;letter-spacing:1px">
     ALGOBENCH NEXUS · BUILT FOR PERFORMANCE ENGINEERING
 </div>
 """, unsafe_allow_html=True)
+
 
 # Open the sidebar automatically right after the landing screen.
 if st.session_state.pop("force_sidebar_expand", False):
