@@ -1,0 +1,13 @@
+         1806 function calls in 0.003 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.002    0.002    0.003    0.003 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\graph.py:96(bellman_ford)
+        1    0.001    0.001    0.001    0.001 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\graph.py:6(_validate_graph)
+      600    0.000    0.000    0.000    0.000 {method 'append' of 'list' objects}
+      600    0.000    0.000    0.000    0.000 {built-in method math.isfinite}
+      601    0.000    0.000    0.000    0.000 {built-in method builtins.isinstance}
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.len}
+        1    0.000    0.000    0.000    0.000 {method 'items' of 'dict' objects}

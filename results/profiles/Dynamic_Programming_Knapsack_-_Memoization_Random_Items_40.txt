@@ -1,0 +1,21 @@
+         12843 function calls (6400 primitive calls) in 0.014 seconds
+
+   Ordered by: cumulative time
+   List reduced from 65 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     6225    0.001    0.000    0.001    0.000 {built-in method builtins.max}
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        4    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\events.py:92(_run)
+        4    0.000    0.000    0.000    0.000 {method 'run' of '_contextvars.Context' objects}
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\base_events.py:1976(_run_once)
+        4    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\tasks.py:689(sleep)
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\runtime\runtime.py:754(_loop_coroutine)
+        2    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\base_events.py:775(call_later)
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\windows_events.py:444(select)
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\web\server\starlette\starlette_server.py:460(serve_with_signal)
+        1    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\windows_events.py:765(_poll)
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\uvicorn\server.py:242(main_loop)
+        2    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\base_events.py:799(call_at)
+        1    0.000    0.000    0.000    0.000 {method 'add_done_callback' of '_asyncio.Future' objects}
+        2    0.000    0.000    0.000    0.000 C:\Python314\Lib\asyncio\base_events.py:817(call_soon)

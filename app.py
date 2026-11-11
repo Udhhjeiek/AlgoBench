@@ -7,10 +7,16 @@ from visualization.dashboard_charts import (
     show_runtime_chart,
     show_csv_download
 )
+from benchmarking import (
+    create_default_engine,
+    build_dataset,
+    recommended_input_sizes,
+    load_csv,
+)
 
 st.set_page_config(
     page_title="AlgoBench | Performance Lab",
-    page_icon="💫",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -1701,7 +1707,7 @@ with st.sidebar:
         <span class="ab-status">● INTERFACE ONLINE</span>
         <br><br>
         <div class="ab-description">
-            Benchmark engine integration is under development.
+            Benchmark engine online. Ready to execute algorithm experiments.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1883,9 +1889,9 @@ if page == "Overview":
     c1,c2,c3,c4 = st.columns(4)
 
     c1.metric("Algorithm Categories","05")
-    c2.metric("Algorithm Implementations","15+")
+    c2.metric("Algorithm Implementations","16")
     c3.metric("Analysis Tools","03")
-    c4.metric("Benchmark Engine","Pending")
+    c4.metric("Benchmark Engine","Online")
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("### Explore Algorithm Domains")
@@ -2132,6 +2138,16 @@ elif page == "Run Benchmark":
             key="benchmark_category"
         )
 
+    # Clear stale selections when the user switches to a different category.
+    if "benchmark_algorithms" in st.session_state:
+        valid_selected_algorithms = [
+            name for name in st.session_state["benchmark_algorithms"]
+            if name in algorithm_options[category]
+        ]
+        st.session_state["benchmark_algorithms"] = (
+            valid_selected_algorithms or algorithm_options[category][:1]
+        )
+
     with col2:
         algorithms = st.multiselect(
             "Select Algorithms",
@@ -2147,18 +2163,65 @@ elif page == "Run Benchmark":
 
     col1, col2 = st.columns(2)
 
+    if (
+        "benchmark_input_type" in st.session_state
+        and st.session_state["benchmark_input_type"] not in input_options[category]
+    ):
+        st.session_state["benchmark_input_type"] = input_options[category][0]
+
     with col1:
-        input_size = st.selectbox(
-            "Dataset Size",
-            [100, 500, 1000, 5000, 10000, 50000],
-            index=2
+        input_type = st.selectbox(
+            "Input Distribution",
+            input_options[category],
+            key="benchmark_input_type"
+        )
+
+    valid_sizes = recommended_input_sizes(category, algorithms, input_type)
+
+    # Reset stale widget values when category/algorithm selection changes the
+    # supported size range (e.g. Insertion Sort has a lower safe maximum).
+    if (
+        "benchmark_input_size" in st.session_state
+        and st.session_state["benchmark_input_size"] not in valid_sizes
+    ):
+        st.session_state["benchmark_input_size"] = valid_sizes[min(2, len(valid_sizes) - 1)]
+
+    if "benchmark_scaling_sizes" in st.session_state:
+        retained_sizes = [
+            value for value in st.session_state["benchmark_scaling_sizes"]
+            if value in valid_sizes
+        ]
+        st.session_state["benchmark_scaling_sizes"] = (
+            retained_sizes or valid_sizes[:min(3, len(valid_sizes))]
         )
 
     with col2:
-        input_type = st.selectbox(
-            "Input Distribution",
-            input_options[category]
+        default_size_index = min(2, len(valid_sizes) - 1)
+        input_size = st.selectbox(
+            "Dataset Size",
+            valid_sizes,
+            index=default_size_index,
+            key="benchmark_input_size"
         )
+
+    run_scaling = st.checkbox(
+        "Run a scaling experiment across multiple input sizes",
+        value=False,
+        help="Runs the selected algorithms on each chosen size and records all measurements."
+    )
+
+    if run_scaling:
+        scaling_sizes = st.multiselect(
+            "Input sizes for scaling experiment",
+            options=valid_sizes,
+            default=valid_sizes[:min(3, len(valid_sizes))],
+            key="benchmark_scaling_sizes"
+        )
+        selected_sizes = sorted(set(scaling_sizes))
+        if not selected_sizes:
+            st.warning("Select at least one input size for the scaling experiment.")
+    else:
+        selected_sizes = [input_size]
 
     if category == "Sorting":
         st.caption(
@@ -2227,6 +2290,19 @@ elif page == "Run Benchmark":
         "Using the same random seed helps reproduce generated datasets."
     )
 
+    option_col1, option_col2 = st.columns(2)
+    with option_col1:
+        measure_memory_enabled = st.checkbox(
+            "Measure peak memory (tracemalloc)",
+            value=True
+        )
+    with option_col2:
+        profile_enabled = st.checkbox(
+            "Generate cProfile report",
+            value=True,
+            help="Profiling runs separately from timing so profiler overhead does not distort runtime measurements."
+        )
+
     st.markdown('<div class="ab-divider"></div>',
                 unsafe_allow_html=True)
 
@@ -2235,52 +2311,130 @@ elif page == "Run Benchmark":
     col1, col2, col3 = st.columns(3)
 
     col1.metric("Algorithms Selected", len(algorithms))
-    col2.metric("Dataset Size", f"{input_size:,}")
-    col3.metric("Total Trials", len(algorithms) * trials)
+    col2.metric("Dataset Sizes", len(selected_sizes))
+    col3.metric("Benchmark Runs", len(algorithms) * len(selected_sizes))
+
+    if run_scaling:
+        st.caption(
+            "Selected sizes: " + ", ".join(f"{value:,}" for value in selected_sizes)
+        )
 
     if category == "Searching" and "Binary Search" in algorithms:
         if input_type != "Sorted":
-            st.warning(
-                "Binary Search requires sorted input. "
-                "The dataset generator must sort the data before searching."
+            st.info(
+                "Binary Search requires ascending-sorted input. "
+                "For a fair search comparison, AlgoBench will use the same sorted "
+                "collection for all selected search algorithms."
             )
 
     if st.button(
-        "Prepare Benchmark Configuration",
+        "Run Benchmark",
         use_container_width=True,
         key="prepare_benchmark_configuration"
     ):
-
         if not algorithms:
             st.error("Please select at least one algorithm.")
-
+        elif not selected_sizes:
+            st.error("Please select at least one dataset size.")
         else:
+            import datetime
+            from pathlib import Path
+
             config = {
                 "category": category,
-                "algorithms": algorithms,
-                "input_size": input_size,
+                "algorithms": list(algorithms),
+                "input_sizes": list(selected_sizes),
                 "input_type": input_type,
                 "trials": int(trials),
                 "random_seed": int(random_seed),
-                "search_mode": search_mode
+                "search_mode": search_mode,
+                "measure_memory": bool(measure_memory_enabled),
+                "profile": bool(profile_enabled),
             }
-
             st.session_state["benchmark_config"] = config
 
-            st.success(
-                "Benchmark configuration prepared successfully!"
-            )
+            results_dir = PROJECT_DIR / "results"
+            engine = create_default_engine(results_dir=str(results_dir))
+            jobs = [
+                (algorithm, size)
+                for size in selected_sizes
+                for algorithm in algorithms
+            ]
 
-    if "benchmark_config" in st.session_state:
+            progress = st.progress(0, text="Initializing benchmark engine...")
+            status = st.empty()
+            benchmark_rows = []
+            profile_results = {}
 
-        st.markdown("### Prepared Experiment")
+            try:
+                for job_index, (algorithm, size) in enumerate(jobs, start=1):
+                    dataset, actual_input_type, notes = build_dataset(
+                        category=category,
+                        algorithm=algorithm,
+                        size=int(size),
+                        input_type=input_type,
+                        seed=int(random_seed),
+                        search_mode=search_mode or "Successful Search",
+                        binary_search_selected=(
+                            category == "Searching" and "Binary Search" in algorithms
+                        ),
+                    )
 
-        st.json(st.session_state["benchmark_config"])
+                    profile_this_run = (
+                        bool(profile_enabled) and size == max(selected_sizes)
+                    )
+                    status.info(
+                        f"Running **{algorithm}** · input size **{size:,}** "
+                        f"({job_index}/{len(jobs)})"
+                    )
 
-        st.info(
-            "Configuration is ready. Actual execution will be enabled "
-            "after integration with the benchmarking engine."
-        )
+                    row = engine.run(
+                        category,
+                        algorithm,
+                        dataset,
+                        input_size=int(size),
+                        input_type=actual_input_type,
+                        trials=int(trials),
+                        warmup=1,
+                        measure_memory=bool(measure_memory_enabled),
+                        profile=profile_this_run,
+                        seed=int(random_seed),
+                        notes=notes,
+                    )
+                    benchmark_rows.append(row)
+
+                    if row.get("profile"):
+                        profile_results[f"{algorithm} · n={size:,}"] = row["profile"]
+
+                    progress.progress(
+                        job_index / len(jobs),
+                        text=f"Completed {job_index} of {len(jobs)} benchmark runs"
+                    )
+
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                csv_name = f"{category.lower().replace(' ', '_')}_{timestamp}.csv"
+                csv_path = engine.save_csv(benchmark_rows, filename=csv_name)
+
+                st.session_state["benchmark_results"] = benchmark_rows
+                st.session_state["benchmark_profiles"] = profile_results
+                st.session_state["benchmark_csv_path"] = csv_path
+
+                status.success(
+                    f"Completed {len(benchmark_rows)} benchmark runs. "
+                    f"Results saved to {Path(csv_path).as_posix()}."
+                )
+                progress.progress(1.0, text="Benchmark completed")
+                st.success("Benchmark execution completed successfully.")
+
+                st.markdown("### Latest Benchmark Results")
+                show_benchmark_metrics(benchmark_rows)
+                show_runtime_chart(benchmark_rows)
+                show_csv_download(benchmark_rows)
+
+            except Exception as error:
+                status.error("Benchmark execution failed.")
+                progress.empty()
+                st.exception(error)
 
 
 # COMPARE RESULTS
@@ -2288,25 +2442,67 @@ elif page == "Run Benchmark":
 elif page == "Compare Results":
 
     st.title("Performance Comparison")
-    st.caption("Analyze actual algorithm benchmarking results.")
+    st.caption("Compare measured runtime and memory across algorithms and input sizes.")
 
     results = st.session_state.get("benchmark_results", [])
+    csv_path = st.session_state.get("benchmark_csv_path")
+
+    if not results and csv_path and Path(csv_path).is_file():
+        results = load_csv(csv_path)
 
     if results:
         show_benchmark_metrics(results)
-
         st.markdown("---")
-
         show_runtime_chart(results)
-
         st.markdown("---")
-
         show_csv_download(results)
+
+        st.markdown("### GNUplot Visualization")
+        st.caption(
+            "The benchmark engine can prepare GNUplot data files without GNUplot; "
+            "rendering PNG plots requires the GNUplot executable on PATH."
+        )
+
+        plot_col1, plot_col2 = st.columns(2)
+        with plot_col1:
+            if st.button("Prepare GNUplot data", use_container_width=True):
+                if not csv_path or not Path(csv_path).is_file():
+                    st.warning("Save a benchmark CSV before preparing GNUplot data.")
+                else:
+                    from visualization.gnuplot_runner import write_dat_files
+                    jobs = write_dat_files(
+                        csv_path,
+                        str(PROJECT_DIR / "results" / "plots")
+                    )
+                    st.session_state["gnuplot_jobs"] = jobs
+                    st.success(f"Prepared {len(jobs)} GNUplot data file(s).")
+                    if jobs:
+                        st.dataframe(jobs, use_container_width=True, hide_index=True)
+
+        with plot_col2:
+            if st.button("Render GNUplot PNGs", use_container_width=True):
+                if not csv_path or not Path(csv_path).is_file():
+                    st.warning("Save a benchmark CSV before rendering plots.")
+                else:
+                    try:
+                        from visualization.gnuplot_runner import generate_plots
+                        png_paths = generate_plots(
+                            csv_path,
+                            out_dir=str(PROJECT_DIR / "results" / "plots")
+                        )
+                        st.session_state["gnuplot_images"] = png_paths
+                        st.success(f"Generated {len(png_paths)} plot image(s).")
+                    except RuntimeError as error:
+                        st.warning(str(error))
+
+        for plot_path in st.session_state.get("gnuplot_images", []):
+            if Path(plot_path).is_file():
+                st.image(plot_path, caption=Path(plot_path).name, use_container_width=True)
 
     else:
         st.info(
             "No benchmark results available yet. "
-            "Run an experiment to see performance comparisons."
+            "Run an experiment to see measured comparisons."
         )
 # PROFILER
 
@@ -2341,7 +2537,74 @@ elif page == "Profiler":
         </div>
         """, unsafe_allow_html=True)
 
-    st.info("Profiler integration will be added with the benchmarking engine.")
+    profile_results = st.session_state.get("benchmark_profiles", {})
+
+    if profile_results:
+        st.markdown("### Latest Profiling Results")
+        selected_profile = st.selectbox(
+            "Select an algorithm profile",
+            list(profile_results.keys()),
+            key="selected_profile_view"
+        )
+        profile_data = profile_results[selected_profile]
+        st.success(profile_data.get("summary", "Profile completed."))
+
+        profile_rows = profile_data.get("rows", [])
+        if profile_rows:
+            st.dataframe(
+                profile_rows,
+                use_container_width=True,
+                hide_index=True
+            )
+
+        with st.expander("Full cProfile / pstats report"):
+            st.code(profile_data.get("text", "No text report available."), language="text")
+
+        profile_files = profile_data.get("files", {})
+        if profile_files:
+            st.caption(
+                "Saved profile artifacts: " +
+                ", ".join(Path(path).name for path in profile_files.values())
+            )
+    else:
+        st.info(
+            "No cProfile report is available in this session. "
+            "Enable 'Generate cProfile report' on the Run Benchmark page and "
+            "execute an experiment; profiling is performed separately from timing."
+        )
+
+    saved_profile_dir = PROJECT_DIR / "results" / "profiles"
+    if saved_profile_dir.exists():
+        saved_profile_reports = sorted(
+            saved_profile_dir.glob("*.txt"),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True
+        )
+        if saved_profile_reports:
+            with st.expander("Saved cProfile reports"):
+                saved_profile = st.selectbox(
+                    "Saved profile artifact",
+                    saved_profile_reports,
+                    format_func=lambda p: p.name,
+                    key="saved_cprofile_report"
+                )
+                st.code(
+                    saved_profile.read_text(encoding="utf-8", errors="replace"),
+                    language="text"
+                )
+
+    gprof_dir = PROJECT_DIR / "results" / "gprof"
+    if gprof_dir.exists():
+        reports = sorted(gprof_dir.glob("*_gprof.txt"), key=lambda p: p.stat().st_mtime, reverse=True)
+        if reports:
+            with st.expander("Native gprof reports"):
+                chosen_report = st.selectbox(
+                    "Saved gprof report",
+                    reports,
+                    format_func=lambda p: p.name,
+                    key="saved_gprof_report"
+                )
+                st.code(chosen_report.read_text(encoding="utf-8", errors="replace"), language="text")
 
 
 # ALGORITHM LIBRARY
@@ -2385,10 +2648,38 @@ elif page == "History":
     st.title("Experiment History")
     st.caption("Access previous benchmark executions.")
 
-    st.info(
-        "Your benchmark history will appear here after "
-        "the result storage module is integrated."
-    )
+    engine = create_default_engine(results_dir=str(PROJECT_DIR / "results"))
+    history_files = engine.list_result_files()
+
+    if not history_files:
+        st.info("No saved experiments yet. Run a benchmark to create your first history entry.")
+    else:
+        selected_history = st.selectbox(
+            "Select an experiment",
+            history_files,
+            format_func=lambda p: Path(p).name,
+            key="history_file_selection"
+        )
+        history_rows = load_csv(selected_history)
+
+        st.markdown("### Saved Experiment")
+        st.caption(Path(selected_history).name)
+        show_benchmark_metrics(history_rows)
+
+        csv_bytes = Path(selected_history).read_bytes()
+        st.download_button(
+            "Download selected experiment",
+            data=csv_bytes,
+            file_name=Path(selected_history).name,
+            mime="text/csv",
+            use_container_width=True,
+        )
+
+        if st.button("Load into Compare Results", use_container_width=True):
+            st.session_state["benchmark_results"] = history_rows
+            st.session_state["benchmark_csv_path"] = selected_history
+            st.session_state["current_page"] = "Compare Results"
+            st.rerun()
 
 
 # FOOTER

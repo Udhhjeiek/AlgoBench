@@ -1,0 +1,21 @@
+         1569 function calls (1545 primitive calls) in 0.199 seconds
+
+   Ordered by: cumulative time
+   List reduced from 119 to 15 due to restriction <15>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+     10/5    0.000    0.000    0.135    0.027 C:\Python314\Lib\asyncio\base_events.py:1976(_run_once)
+     10/5    0.000    0.000    0.135    0.027 C:\Python314\Lib\asyncio\windows_events.py:444(select)
+     10/5    0.000    0.000    0.135    0.027 C:\Python314\Lib\asyncio\windows_events.py:765(_poll)
+        1    0.073    0.073    0.073    0.073 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\matrix.py:72(standard_matrix_multiply)
+      2/1    0.000    0.000    0.062    0.062 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\polling_path_watcher.py:95(_check_if_path_changed)
+        9    0.061    0.007    0.061    0.007 {built-in method _overlapped.GetQueuedCompletionStatus}
+      2/1    0.016    0.008    0.046    0.046 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\util.py:138(path_modification_time)
+      4/2    0.046    0.012    0.046    0.023 {built-in method nt._path_exists}
+        2    0.000    0.000    0.016    0.008 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\watcher\util.py:96(calc_hash_with_blocking_retries)
+       12    0.000    0.000    0.001    0.000 C:\Python314\Lib\asyncio\events.py:92(_run)
+       12    0.000    0.000    0.001    0.000 {method 'run' of '_contextvars.Context' objects}
+        2    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\.venv\Lib\site-packages\streamlit\runtime\runtime.py:754(_loop_coroutine)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\matrix.py:50(_validate_inputs)
+        2    0.000    0.000    0.000    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\matrix.py:25(_validate_matrix)

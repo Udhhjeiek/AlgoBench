@@ -1,0 +1,2 @@
+timestamp,category,algorithm,input_size,input_type,trial_count,average_time,median_time,min_time,max_time,standard_deviation,memory_measurement,seed,notes
+2026-11-12T00:50:46,Sorting,Quick Sort,1000,Random,5,0.002085080000688322,0.0021438000112539157,0.0017693999980110675,0.002333099997485988,0.00021493954345146372,43.859375,42,Integer array; sorting implementations return a new sorted list.

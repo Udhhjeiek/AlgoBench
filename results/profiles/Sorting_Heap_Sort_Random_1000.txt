@@ -1,0 +1,9 @@
+         1502 function calls in 0.005 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.001    0.001    0.004    0.004 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\sorting.py:47(heap_sort)
+     1499    0.003    0.000    0.003    0.000 C:\Users\banso\Desktop\AlgoBench_Integrated_HistoryFix\AlgoBench\algorithms\sorting.py:52(sift_down)
+        1    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+        1    0.000    0.000    0.000    0.000 {built-in method builtins.len}

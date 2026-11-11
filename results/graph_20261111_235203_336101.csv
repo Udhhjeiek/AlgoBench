@@ -1,0 +1,4 @@
+timestamp,category,algorithm,input_size,input_type,trial_count,average_time,median_time,min_time,max_time,standard_deviation,memory_measurement,seed,notes
+2026-11-11T23:52:02,Graph,Dijkstra,50,Sparse,5,0.0002000799955567345,0.00017779998597688973,0.000142400007462129,0.0002620999875944108,5.723728520747869e-05,3.3203125,42,Undirected connected weighted graph; source vertex is 0.
+2026-11-11T23:52:02,Graph,Bellman-Ford,50,Sparse,5,0.00024225999950431288,0.0002469000028213486,0.00017059998936019838,0.0003507999936118722,6.956362526183001e-05,3.5859375,42,Undirected connected weighted graph; source vertex is 0.
+2026-11-11T23:52:03,Graph,BFS,50,Sparse,5,0.00012618000037036836,0.00012719999358523637,8.870000601746142e-05,0.00016039999900385737,3.1940676322140547e-05,5.6875,42,Undirected connected weighted graph; source vertex is 0. BFS reports unweighted edge-count distances; edge weights are ignored.

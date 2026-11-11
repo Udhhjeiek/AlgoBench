@@ -1,13 +1,37 @@
+# Python environments
+.venv/
+venv/
+env/
 
-# Python cache directories
+# Python bytecode and caches
 __pycache__/
 **/__pycache__/
-
-# Python compiled files
 *.py[cod]
 *.pyo
 *.pyd
-
-# Pytest cache
 .pytest_cache/
 **/.pytest_cache/
+
+# Generated profiler and native build artifacts
+*.prof
+gmon.out
+native/profiled_program
+native/profiled_program.exe
+
+# Generated GNUplot files
+# Keep CSV experiment evidence, GNUplot data/PNG outputs and readable profiler reports trackable.
+# Binary cProfile dumps remain ignored by the global *.prof rule.
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# LaTeX build intermediates
+reports/*.aux
+reports/*.log
+reports/*.nav
+reports/*.out
+reports/*.snm
+reports/*.toc

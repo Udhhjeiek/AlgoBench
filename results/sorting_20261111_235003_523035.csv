@@ -1,0 +1,5 @@
+timestamp,category,algorithm,input_size,input_type,trial_count,average_time,median_time,min_time,max_time,standard_deviation,memory_measurement,seed,notes
+2026-11-11T23:50:02,Sorting,Quick Sort,1000,Random,5,0.001876300000003539,0.0018167999951401725,0.0015325000131269917,0.0024004000006243587,0.000326942307981499,43.859375,42,Integer array; sorting implementations return a new sorted list.
+2026-11-11T23:50:02,Sorting,Merge Sort,1000,Random,5,0.002211780002107844,0.0022018999879946932,0.001664900002651848,0.002788500001770444,0.00040689018973960416,33.8125,42,Integer array; sorting implementations return a new sorted list.
+2026-11-11T23:50:02,Sorting,Heap Sort,1000,Random,5,0.002425779998884536,0.002620799990836531,0.0018622999923536554,0.0027569999947445467,0.0003849183008078021,8.0703125,42,Integer array; sorting implementations return a new sorted list.
+2026-11-11T23:50:03,Sorting,Insertion Sort,1000,Random,5,0.020885899997665547,0.02046630000404548,0.01788440000382252,0.02613339999516029,0.0031797305252725845,7.8671875,42,Integer array; sorting implementations return a new sorted list.
