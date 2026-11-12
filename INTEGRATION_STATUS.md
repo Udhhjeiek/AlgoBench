@@ -3,7 +3,7 @@
 ## 1. Integrated Contributions
 
 - **CS25BT005:** Sorting and searching implementations and their unit tests.
-- **CS25BT022:** Graph algorithms (Dijkstra, Bellman–Ford and BFS), graph generator, and unit tests.
+- **MC25BT022:** Graph algorithms (Dijkstra, Bellman–Ford and BFS), graph generator, and unit tests.
 - **CS25BT031:** Dynamic programming and matrix algorithms, string and matrix data generators, manual test scripts, and unit tests. Folder and import names were standardized to the common project packages.
 - **CS25BT041:** Benchmark engine, timer, memory profiler, cProfile and gprof support, GNUplot runner and scripts, and benchmark-engine tests.
 - **CS25BT051:** Streamlit dashboard, application integration, visual assets, theme system, landing-page interactions, and project coordination.
